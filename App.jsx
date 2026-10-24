@@ -8315,10 +8315,10 @@ function IntegrationsView({ clients = [], transactions = [], workspaceSettings =
         </div>
       </div>
 
-      {/* FILTER TABS & SEARCH BAR (PERFECTLY CENTERED SPACING) */}
-      <div className="flex flex-col md:flex-row items-center gap-4 pt-2">
+      {/* FILTER TABS & SEARCH BAR (CLEAN ALIGNMENT) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
         {/* Category Tabs with Sleek GitHub Corners */}
-        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden p-1 bg-slate-200/60 rounded-lg w-full md:w-auto shrink-0">
+        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden p-1 bg-slate-200/60 rounded-lg w-full sm:w-auto shrink-0">
           {[
             { id: 'all', label: 'All Platforms', count: integrations.length },
             { id: 'ads', label: 'Ad Networks', count: integrations.filter(i => i.category === 'ads').length },
@@ -8347,9 +8347,9 @@ function IntegrationsView({ clients = [], transactions = [], workspaceSettings =
           })}
         </div>
 
-        {/* Search Input Centered in Remaining Space with Equal Space Left & Right */}
-        <div className="flex-1 flex justify-center w-full md:w-auto">
-          <div className="relative w-full max-w-[260px]">
+        {/* Search Input Aligned to the Right Edge of the Grid */}
+        <div className="w-full sm:w-auto flex justify-start sm:justify-end">
+          <div className="relative w-full sm:w-64 md:w-72">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
