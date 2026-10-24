@@ -35,6 +35,24 @@ function AdminPortalApp() {
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
+    // Prevent browser password manager from auto-filling saved personal passwords
+  useEffect(() => {
+    setClientIdentifier('');
+    setAccessCode('');
+    setPassword('');
+    const t1 = setTimeout(() => {
+      setClientIdentifier('');
+      setAccessCode('');
+      setPassword('');
+    }, 120);
+    const t2 = setTimeout(() => {
+      setClientIdentifier('');
+      setAccessCode('');
+      setPassword('');
+    }, 450);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
+
   const [isUnlocked, setIsUnlocked] = useState(() => {
     try {
       return sessionStorage.getItem('quantrex_admin_unlocked') === 'true' || 
@@ -323,7 +341,10 @@ function AdminPortalApp() {
             </p>
 
             {/* Form */}
-            <form onSubmit={handleAuthenticate}>
+            <form onSubmit={handleAuthenticate} autoComplete="off">
+              {/* Browser Autofill Trap (absorbs Chrome/Edge password managers) */}
+              <input type="text" name="fake_username_remember" style={{ position: 'absolute', opacity: 0, height: 0, width: 0, zIndex: -1, pointerEvents: 'none' }} tabIndex={-1} readOnly autoComplete="off" />
+              <input type="password" name="fake_password_remember" style={{ position: 'absolute', opacity: 0, height: 0, width: 0, zIndex: -1, pointerEvents: 'none' }} tabIndex={-1} readOnly autoComplete="off" />
               
               {/* Boxed Inputs Container */}
               <div className="bg-[#090c13]/70 border border-white/[0.06] rounded-2xl p-4 sm:p-5 space-y-4 mb-5">
@@ -342,6 +363,9 @@ function AdminPortalApp() {
                       value={clientIdentifier}
                       onChange={(e) => setClientIdentifier(e.target.value)}
                       placeholder="Enter your admin ID"
+                      autoComplete="chrome-off"
+                      autoCorrect="off"
+                      spellCheck="false"
                       className="w-full pl-10 pr-4 py-2.5 bg-[#06080e] border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-500/80 focus:ring-1 focus:ring-red-500/40 transition-all font-sans"
                     />
                   </div>
@@ -357,10 +381,12 @@ function AdminPortalApp() {
                       <Key size={16} />
                     </div>
                     <input
-                      type="password"
+                      type="text"
                       value={accessCode}
                       onChange={(e) => setAccessCode(e.target.value)}
                       placeholder="Enter access code"
+                      autoComplete="new-password"
+                      style={{ WebkitTextSecurity: 'disc' }}
                       className="w-full pl-10 pr-4 py-2.5 bg-[#06080e] border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-500/80 focus:ring-1 focus:ring-red-500/40 transition-all font-sans"
                     />
                   </div>
@@ -380,6 +406,7 @@ function AdminPortalApp() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter your password"
+                      autoComplete="new-password"
                       className="w-full pl-10 pr-10 py-2.5 bg-[#06080e] border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-500/80 focus:ring-1 focus:ring-red-500/40 transition-all font-sans"
                     />
                     <button
