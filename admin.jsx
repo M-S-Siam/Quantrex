@@ -53,6 +53,25 @@ function AdminPortalApp() {
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
+    // Supabase Auth listener for password recovery
+  useEffect(() => {
+    try {
+      if (window.location.hash.includes('type=recovery') || window.location.search.includes('type=recovery')) {
+        setIsRecoveryMode(true);
+      }
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          setIsRecoveryMode(true);
+        }
+      });
+      return () => {
+        subscription?.unsubscribe();
+      };
+    } catch (err) {
+      console.error('Recovery listener error:', err);
+    }
+  }, []);
+
   const [isUnlocked, setIsUnlocked] = useState(() => {
     try {
       return sessionStorage.getItem('quantrex_admin_unlocked') === 'true' || 
@@ -62,7 +81,24 @@ function AdminPortalApp() {
     }
   });
 
-    // Forgot password modal state
+      // Password Recovery Mode State
+  const [isRecoveryMode, setIsRecoveryMode] = useState(() => {
+    try {
+      return window.location.hash.includes('type=recovery') || 
+             window.location.search.includes('type=recovery');
+    } catch {
+      return false;
+    }
+  });
+  const [newRecoveryPass, setNewRecoveryPass] = useState('');
+  const [confirmRecoveryPass, setConfirmRecoveryPass] = useState('');
+  const [showNewPass, setShowNewPass] = useState(false);
+  const [showConfirmPass, setShowConfirmPass] = useState(false);
+  const [recoveryLoading, setRecoveryLoading] = useState(false);
+  const [recoveryMsg, setRecoveryMsg] = useState('');
+  const [recoveryError, setRecoveryError] = useState('');
+
+  // Forgot password modal state
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
@@ -273,7 +309,7 @@ function AdminPortalApp() {
     try {
       const emailToSend = forgotEmail.trim() || 'mdshahariar307@gmail.com';
       const { error } = await supabase.auth.resetPasswordForEmail(emailToSend, {
-        redirectTo: window.location.href,
+        redirectTo: window.location.origin + window.location.pathname,
       });
       if (error) {
         setForgotError(error.message || 'Failed to send recovery email.');
@@ -284,6 +320,54 @@ function AdminPortalApp() {
       setForgotError('Network error connecting to Supabase auth service.');
     } finally {
       setForgotLoading(false);
+    }
+  };
+
+    const handleUpdatePassword = async (e) => {
+    e.preventDefault();
+    setRecoveryError('');
+    setRecoveryMsg('');
+
+    if (!newRecoveryPass || newRecoveryPass.length < 6) {
+      setRecoveryError('Password must be at least 6 characters long.');
+      return;
+    }
+
+    if (newRecoveryPass !== confirmRecoveryPass) {
+      setRecoveryError('Passwords do not match. Please verify.');
+      return;
+    }
+
+    setRecoveryLoading(true);
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        password: newRecoveryPass,
+      });
+
+      if (error) {
+        setRecoveryError(error.message || 'Failed to update password.');
+        setRecoveryLoading(false);
+        return;
+      }
+
+      setRecoveryMsg('Password updated successfully! Unlocking Executive Console...');
+      
+      if (window.history.replaceState) {
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+
+      setTimeout(() => {
+        setIsRecoveryMode(false);
+        setIsUnlocked(true);
+        setRecoveryLoading(false);
+        try {
+          sessionStorage.setItem('quantrex_admin_unlocked', 'true');
+        } catch {}
+      }, 1200);
+
+    } catch (err) {
+      setRecoveryError('Network error updating password. Please try again.');
+      setRecoveryLoading(false);
     }
   };
 
@@ -305,6 +389,172 @@ function AdminPortalApp() {
       setErrorMsg('Failed to update code.');
     }
   };
+
+  // ==========================================
+  // RECOVERY VIEW: SET NEW PASSWORD
+  // ==========================================
+  if (isRecoveryMode) {
+    return (
+      <div className="min-h-screen w-full bg-[#07090e] text-slate-100 flex items-center justify-center p-4 relative overflow-hidden font-sans select-none">
+        
+        {/* Dynamic angled crimson shards & ambient laser background */}
+        <div className="absolute inset-y-0 left-0 w-1/3 max-w-[420px] pointer-events-none overflow-hidden select-none z-0">
+          <div 
+            className="absolute inset-0 opacity-80"
+            style={{
+              background: 'linear-gradient(115deg, rgba(225,29,72,0.45) 0%, rgba(153,27,27,0.2) 35%, rgba(15,23,42,0) 70%)',
+              clipPath: 'polygon(0 0, 75% 0, 100% 100%, 0 100%)'
+            }}
+          />
+          <div 
+            className="absolute top-0 bottom-0 left-[72%] w-[2px] bg-gradient-to-b from-transparent via-red-500 to-transparent opacity-80 shadow-[0_0_20px_#ef4444]"
+            style={{ transform: 'rotate(-7deg) scaleY(1.2)' }}
+          />
+        </div>
+
+        {/* Ambient radial soft glow */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-red-600/5 rounded-full blur-[140px] pointer-events-none z-0" />
+
+        {/* Central Recovery Container */}
+        <div className="w-full max-w-[440px] relative z-10">
+          <div className="bg-[#0c0f17]/95 border border-white/[0.08] rounded-[28px] p-7 sm:p-9 backdrop-blur-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85),0_0_40px_rgba(239,68,68,0.06)]">
+            
+            {/* Top Shield Icon Badge */}
+            <div className="flex justify-center mb-5">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-500 via-red-600 to-red-700 p-0.5 shadow-xl shadow-red-600/35 flex items-center justify-center">
+                <div className="w-full h-full bg-[#110d13] rounded-[14px] flex items-center justify-center">
+                  <KeyRound className="w-7 h-7 text-rose-500 stroke-[2.2]" />
+                </div>
+              </div>
+            </div>
+
+            {/* Category Subtitle */}
+            <div className="text-[11px] font-bold tracking-[0.25em] uppercase text-slate-400 text-center mb-2">
+              PLATFORM ADMINISTRATION
+            </div>
+
+            {/* Glowing Red Center Accent Line */}
+            <div className="w-12 h-[2.5px] rounded-full bg-gradient-to-r from-red-600 via-rose-500 to-red-600 mx-auto mb-4 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+
+            {/* Title */}
+            <h1 className="text-3xl font-black text-center text-white tracking-tight mb-2">
+              Set New <span className="text-red-500">Password</span>
+            </h1>
+
+            {/* Subtitle */}
+            <p className="text-xs text-slate-400/90 text-center leading-relaxed max-w-[300px] mx-auto mb-6">
+              Enter and confirm your new executive account password below.
+            </p>
+
+            {/* Form */}
+            <form onSubmit={handleUpdatePassword} autoComplete="off">
+              
+              <div className="bg-[#090c13]/70 border border-white/[0.06] rounded-2xl p-4 sm:p-5 space-y-4 mb-5">
+                
+                {/* 1. NEW PASSWORD */}
+                <div>
+                  <label className="block text-[10px] font-bold tracking-[0.18em] uppercase text-slate-400 mb-2">
+                    NEW PASSWORD
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                      <Lock size={16} />
+                    </div>
+                    <input
+                      type={showNewPass ? 'text' : 'password'}
+                      value={newRecoveryPass}
+                      onChange={(e) => setNewRecoveryPass(e.target.value)}
+                      placeholder="Enter at least 6 characters"
+                      required
+                      minLength={6}
+                      autoFocus
+                      className="w-full pl-10 pr-10 py-2.5 bg-[#06080e] border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-500/80 focus:ring-1 focus:ring-red-500/40 transition-all font-sans"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPass(!showNewPass)}
+                      className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300 transition-colors"
+                    >
+                      {showNewPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* 2. CONFIRM PASSWORD */}
+                <div>
+                  <label className="block text-[10px] font-bold tracking-[0.18em] uppercase text-slate-400 mb-2">
+                    CONFIRM PASSWORD
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                      <Lock size={16} />
+                    </div>
+                    <input
+                      type={showConfirmPass ? 'text' : 'password'}
+                      value={confirmRecoveryPass}
+                      onChange={(e) => setConfirmRecoveryPass(e.target.value)}
+                      placeholder="Re-enter your new password"
+                      required
+                      minLength={6}
+                      className="w-full pl-10 pr-10 py-2.5 bg-[#06080e] border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-500/80 focus:ring-1 focus:ring-red-500/40 transition-all font-sans"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPass(!showConfirmPass)}
+                      className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300 transition-colors"
+                    >
+                      {showConfirmPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Status/Error Messages */}
+              {recoveryError && (
+                <div className="p-3 mb-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-semibold flex items-center gap-2">
+                  <AlertCircle size={15} />
+                  <span>{recoveryError}</span>
+                </div>
+              )}
+
+              {recoveryMsg && (
+                <div className="p-3 mb-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold flex items-center gap-2">
+                  <CheckCircle2 size={15} />
+                  <span>{recoveryMsg}</span>
+                </div>
+              )}
+
+              {/* Primary Action Button */}
+              <button
+                type="submit"
+                disabled={recoveryLoading}
+                className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-500 hover:via-rose-500 hover:to-red-500 text-white font-bold text-sm tracking-wide shadow-lg shadow-red-600/35 hover:shadow-red-600/50 hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer mb-4 disabled:opacity-50"
+              >
+                {recoveryLoading ? (
+                  <RefreshCw size={17} className="animate-spin" />
+                ) : (
+                  <Lock size={17} className="stroke-[2.2]" />
+                )}
+                <span>{recoveryLoading ? 'Updating Password...' : 'Save Password & Enter Console'}</span>
+              </button>
+
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => setIsRecoveryMode(false)}
+                  className="text-xs text-slate-400 hover:text-white transition-colors"
+                >
+                  Cancel & Back to Sign In
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // ==========================================
   // 1. EXACT REFERENCE ADMIN SIGN IN INTERFACE
