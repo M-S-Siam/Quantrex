@@ -5,7 +5,7 @@ import { supabase } from './src/lib/supabase.js';
 import { 
   ShieldAlert, User, Key, Lock, Eye, EyeOff, ArrowRight, ArrowLeft,
   Crown, ExternalLink, Sun, Moon, Sparkles, RefreshCw, CheckCircle2,
-  AlertCircle, KeyRound
+  AlertCircle, KeyRound, X
 } from 'lucide-react';
 import './index.css';
 import './auth-fix.css';
@@ -62,6 +62,12 @@ function AdminPortalApp() {
     }
   });
 
+    // Forgot password modal state
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotMsg, setForgotMsg] = useState('');
+  const [forgotError, setForgotError] = useState('');
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [newCode, setNewCode] = useState('');
   const [codeSuccessMsg, setCodeSuccessMsg] = useState('');
@@ -253,7 +259,32 @@ function AdminPortalApp() {
   };
 
   const handleForgotPassword = () => {
-    alert('For security recovery of Quantrex Executive Credentials, please contact the primary founder at veloxadsphere@gmail.com or use your Master Access Code (2026).');
+    setForgotEmail(clientIdentifier || 'mdshahariar307@gmail.com');
+    setForgotMsg('');
+    setForgotError('');
+    setShowForgotModal(true);
+  };
+
+  const handleSendResetEmail = async (e) => {
+    e.preventDefault();
+    setForgotLoading(true);
+    setForgotMsg('');
+    setForgotError('');
+    try {
+      const emailToSend = forgotEmail.trim() || 'mdshahariar307@gmail.com';
+      const { error } = await supabase.auth.resetPasswordForEmail(emailToSend, {
+        redirectTo: window.location.href,
+      });
+      if (error) {
+        setForgotError(error.message || 'Failed to send recovery email.');
+      } else {
+        setForgotMsg('Password reset link sent to ' + emailToSend + '. Please check your inbox.');
+      }
+    } catch (err) {
+      setForgotError('Network error connecting to Supabase auth service.');
+    } finally {
+      setForgotLoading(false);
+    }
   };
 
   const handleSaveNewCode = (e) => {
@@ -488,6 +519,82 @@ function AdminPortalApp() {
             </form>
           </div>
         </div>
+
+        {/* Forgot Password Recovery Modal */}
+        {showForgotModal && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+            <div className="w-full max-w-sm bg-[#0c1017] border border-white/10 rounded-3xl p-6 sm:p-7 shadow-2xl relative shadow-black/90">
+              <button
+                type="button"
+                onClick={() => setShowForgotModal(false)}
+                className="absolute top-5 right-5 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-colors"
+              >
+                <X size={18} />
+              </button>
+
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 p-0.5 mb-4 flex items-center justify-center shadow-lg shadow-red-500/30">
+                <div className="w-full h-full bg-[#0a0d14] rounded-[14px] flex items-center justify-center">
+                  <KeyRound className="w-6 h-6 text-rose-500" />
+                </div>
+              </div>
+
+              <h3 className="text-xl font-black text-white tracking-tight mb-1">
+                Reset Password
+              </h3>
+              <p className="text-xs text-slate-400 mb-5 leading-relaxed">
+                Enter your executive email to receive an official recovery link, or use Access Code <strong className="text-red-400 font-mono">6202</strong>.
+              </p>
+
+              <form onSubmit={handleSendResetEmail} className="space-y-4">
+                <div>
+                  <label className="block text-[10px] font-bold tracking-[0.18em] uppercase text-slate-400 mb-2">
+                    Executive Email
+                  </label>
+                  <input
+                    type="email"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    placeholder="mdshahariar307@gmail.com"
+                    required
+                    className="w-full px-4 py-2.5 bg-[#06080e] border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-500/80 focus:ring-1 focus:ring-red-500/40 transition-all font-sans"
+                  />
+                </div>
+
+                {forgotError && (
+                  <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-semibold flex items-center gap-2">
+                    <AlertCircle size={15} />
+                    <span>{forgotError}</span>
+                  </div>
+                )}
+
+                {forgotMsg && (
+                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold flex items-center gap-2">
+                    <CheckCircle2 size={15} />
+                    <span>{forgotMsg}</span>
+                  </div>
+                )}
+
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotModal(false)}
+                    className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-300 text-xs font-bold hover:bg-white/10 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={forgotLoading}
+                    className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white text-xs font-black transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-red-600/30 disabled:opacity-50"
+                  >
+                    {forgotLoading ? <RefreshCw size={14} className="animate-spin" /> : null}
+                    <span>{forgotLoading ? 'Sending...' : 'Send Link'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
