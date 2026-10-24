@@ -300,8 +300,7 @@ function AdminPortalApp() {
                     <ShieldAlert className="w-7 h-7 text-rose-500 stroke-[2.2]" />
                   </div>
                 </div>
-                {/* Glowing Green Online Status Dot */}
-                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-[#0c0f17] shadow-[0_0_8px_rgba(52,211,153,0.9)]" />
+                
               </div>
             </div>
 
@@ -447,29 +446,14 @@ function AdminPortalApp() {
               </button>
 
               {/* Capsule Security Badge */}
-              <div className="flex justify-center mb-6">
+              <div className="flex justify-center">
                 <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#051412] border border-emerald-500/30 text-[10px] font-bold tracking-[0.2em] uppercase text-slate-300 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399] animate-pulse" />
                   <span>SECURE ACCESS ONLY</span>
                 </div>
               </div>
 
-              {/* Horizontal Divider with Red Center Tick */}
-              <div className="relative mb-5 flex items-center justify-center">
-                <div className="w-full border-t border-white/[0.06]" />
-                <div className="absolute w-8 h-[2px] bg-red-600 rounded-full shadow-[0_0_6px_rgba(239,68,68,0.8)]" />
-              </div>
-
-              {/* Back to Website Link */}
-              <div className="text-center">
-                <a
-                  href="./index.html"
-                  className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors"
-                >
-                  <ArrowLeft size={13} />
-                  <span>Back to Website</span>
-                </a>
-              </div>
+              
 
             </form>
           </div>
