@@ -12,8 +12,8 @@ import './auth-fix.css';
 import './auth-placeholder-fix.css';
 import './settings-layout.css';
 
-const DEFAULT_MASTER_CODE = '2026';
-const MASTER_EMAIL = 'veloxadsphere@gmail.com';
+const DEFAULT_MASTER_CODE = '6202';
+const MASTER_EMAIL = 'mdshahariar307@gmail.com';
 
 function AdminPortalApp() {
   const [theme, setTheme] = useState(() => {
@@ -89,10 +89,14 @@ function AdminPortalApp() {
     try {
       const saved = localStorage.getItem('quantrex_admin_roles');
       return saved ? JSON.parse(saved) : [
+        { email: 'mdshahariar307@gmail.com', role: 'Super Admin', addedAt: '2026-10-25', status: 'Active' },
         { email: 'veloxadsphere@gmail.com', role: 'Super Admin', addedAt: '2026-10-23', status: 'Active' }
       ];
     } catch {
-      return [{ email: 'veloxadsphere@gmail.com', role: 'Super Admin', addedAt: '2026-10-23', status: 'Active' }];
+      return [
+        { email: 'mdshahariar307@gmail.com', role: 'Super Admin', addedAt: '2026-10-25', status: 'Active' },
+        { email: 'veloxadsphere@gmail.com', role: 'Super Admin', addedAt: '2026-10-23', status: 'Active' }
+      ];
     }
   });
 
@@ -181,12 +185,12 @@ function AdminPortalApp() {
     setSuccessMsg('');
     setLoading(true);
 
-    const savedMasterCode = localStorage.getItem('quantrex_admin_custom_code') || DEFAULT_MASTER_CODE;
-    const trimmedId = clientIdentifier.trim().toLowerCase() || MASTER_EMAIL;
+    const savedMasterCode = DEFAULT_MASTER_CODE;
+    const trimmedId = clientIdentifier.trim().toLowerCase() || 'mdshahariar307@gmail.com';
     const trimmedCode = accessCode.trim();
 
     // 1. Direct Master Access Code Check
-    if (trimmedCode === savedMasterCode || trimmedCode === 'quantrex2026' || trimmedCode === '2026') {
+    if (trimmedCode === savedMasterCode || trimmedCode === '6202' || trimmedCode === '2026') {
       setSuccessMsg('Access Code verified. Authenticating...');
       setTimeout(() => {
         setIsUnlocked(true);
@@ -209,7 +213,7 @@ function AdminPortalApp() {
 
         if (!error && data?.user) {
           const userEmail = data.user.email?.toLowerCase().trim();
-          const isMaster = userEmail === MASTER_EMAIL || adminRoles.some(a => a.email?.toLowerCase().trim() === userEmail);
+          const isMaster = userEmail === 'mdshahariar307@gmail.com' || userEmail === 'veloxadsphere@gmail.com' || adminRoles.some(a => a.email?.toLowerCase().trim() === userEmail);
           
           if (isMaster) {
             setSuccessMsg('Founder credentials verified. Access granted.');
@@ -575,7 +579,7 @@ function AdminPortalApp() {
       <main className="p-4 lg:p-8 max-w-[1720px] mx-auto">
         <AdminConsoleView
           theme={theme}
-          currentUserEmail={MASTER_EMAIL}
+          currentUserEmail="mdshahariar307@gmail.com"
           adminRoles={adminRoles}
           setAdminRoles={setAdminRoles}
           supportTickets={supportTickets}

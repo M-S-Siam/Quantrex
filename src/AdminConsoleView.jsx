@@ -167,7 +167,7 @@ export default function AdminConsoleView({
   };
 
   const handleRemoveAdmin = (emailToRemove) => {
-    if (emailToRemove === 'veloxadsphere@gmail.com') {
+    if (emailToRemove === 'veloxadsphere@gmail.com' || emailToRemove === 'mdshahariar307@gmail.com') {
       alert('Cannot remove the Master Founder email.');
       return;
     }
@@ -954,7 +954,7 @@ export default function AdminConsoleView({
                           🛡️
                         </span>
                         <span>{a.email}</span>
-                        {a.email === 'veloxadsphere@gmail.com' && (
+                        {(a.email === 'veloxadsphere@gmail.com' || a.email === 'mdshahariar307@gmail.com') && (
                           <span className="px-1.5 py-0.2 rounded bg-amber-500 text-slate-950 text-[9px] font-black uppercase">
                             Master Owner
                           </span>
@@ -966,7 +966,7 @@ export default function AdminConsoleView({
                         ● Full Platform Control
                       </td>
                       <td className="py-3.5 text-right">
-                        {a.email !== 'veloxadsphere@gmail.com' && (
+                        {a.email !== 'veloxadsphere@gmail.com' && a.email !== 'mdshahariar307@gmail.com' && (
                           <button
                             type="button"
                             onClick={() => handleRemoveAdmin(a.email)}

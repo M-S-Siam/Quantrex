@@ -544,9 +544,10 @@ export default function AdLedgerApp() {
   const [workspaceLogoOffsetY, setWorkspaceLogoOffsetY] = useLocalStorage('quantrex_logo_offset_y', 0);
   const [theme, setTheme] = useThemeStorage('quantrex_neumorphic_theme', 'dark'); // 'dark' | 'light'
   const [currentUserEmail, setCurrentUserEmail] = useState('');
-  const MASTER_FOUNDER_EMAILS = useMemo(() => ['veloxadsphere@gmail.com'], []);
+  const MASTER_FOUNDER_EMAILS = useMemo(() => ['mdshahariar307@gmail.com', 'veloxadsphere@gmail.com'], []);
 
   const [adminRoles, setAdminRoles] = useLocalStorage('quantrex_admin_roles', [
+    { email: 'mdshahariar307@gmail.com', role: 'Super Admin', addedAt: '2026-10-25', status: 'Active' },
     { email: 'veloxadsphere@gmail.com', role: 'Super Admin', addedAt: '2026-10-23', status: 'Active' }
   ]);
 
