@@ -1,18 +1,18 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import AdminConsoleView from './src/AdminConsoleView.jsx';
+import { supabase } from './src/lib/supabase.js';
 import { 
-  ShieldCheck, Lock, Unlock, Crown, ExternalLink, KeyRound, 
-  Sun, Moon, AlertTriangle, ArrowRight, RefreshCw, CheckCircle,
-  Eye, EyeOff, Sparkles, Terminal
+  ShieldAlert, User, Key, Lock, Eye, EyeOff, ArrowRight, ArrowLeft,
+  Crown, ExternalLink, Sun, Moon, Sparkles, RefreshCw, CheckCircle2,
+  AlertCircle, KeyRound
 } from 'lucide-react';
 import './index.css';
 import './auth-fix.css';
 import './auth-placeholder-fix.css';
 import './settings-layout.css';
 
-// Master security credentials
-const DEFAULT_MASTER_PIN = '2026';
+const DEFAULT_MASTER_CODE = '2026';
 const MASTER_EMAIL = 'veloxadsphere@gmail.com';
 
 function AdminPortalApp() {
@@ -24,20 +24,29 @@ function AdminPortalApp() {
     }
   });
 
-  const [pin, setPin] = useState('');
-  const [showPin, setShowPin] = useState(false);
+  // Auth Inputs matching reference image
+  const [clientIdentifier, setClientIdentifier] = useState('veloxadsphere@gmail.com');
+  const [accessCode, setAccessCode] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
+
+  const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+
   const [isUnlocked, setIsUnlocked] = useState(() => {
     try {
-      return sessionStorage.getItem('quantrex_admin_unlocked') === 'true';
+      return sessionStorage.getItem('quantrex_admin_unlocked') === 'true' || 
+             localStorage.getItem('quantrex_admin_remembered') === 'true';
     } catch {
       return false;
     }
   });
 
-  const [showPinModal, setShowPinModal] = useState(false);
-  const [newPin, setNewPin] = useState('');
-  const [pinSuccessMsg, setPinSuccessMsg] = useState('');
+  const [showCodeModal, setShowCodeModal] = useState(false);
+  const [newCode, setNewCode] = useState('');
+  const [codeSuccessMsg, setCodeSuccessMsg] = useState('');
 
   // Persisted state hooks
   const [supportTickets, setSupportTickets] = useState(() => {
@@ -112,33 +121,23 @@ function AdminPortalApp() {
 
   // Sync state changes to localStorage
   useEffect(() => {
-    try {
-      localStorage.setItem('quantrex_support_tickets', JSON.stringify(supportTickets));
-    } catch {}
+    try { localStorage.setItem('quantrex_support_tickets', JSON.stringify(supportTickets)); } catch {}
   }, [supportTickets]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('quantrex_payment_queue', JSON.stringify(paymentQueue));
-    } catch {}
+    try { localStorage.setItem('quantrex_payment_queue', JSON.stringify(paymentQueue)); } catch {}
   }, [paymentQueue]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('quantrex_admin_roles', JSON.stringify(adminRoles));
-    } catch {}
+    try { localStorage.setItem('quantrex_admin_roles', JSON.stringify(adminRoles)); } catch {}
   }, [adminRoles]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('quantrex_platform_users', JSON.stringify(mockPlatformUsers));
-    } catch {}
+    try { localStorage.setItem('quantrex_platform_users', JSON.stringify(mockPlatformUsers)); } catch {}
   }, [mockPlatformUsers]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('quantrex_global_announcement', JSON.stringify(globalAnnouncement));
-    } catch {}
+    try { localStorage.setItem('quantrex_global_announcement', JSON.stringify(globalAnnouncement)); } catch {}
   }, [globalAnnouncement]);
 
   // Apply theme class
@@ -150,164 +149,338 @@ function AdminPortalApp() {
       document.documentElement.classList.remove('dark');
       if (document.body) document.body.classList.remove('dark');
     }
-    try {
-      localStorage.setItem('quantrex_admin_portal_theme', theme);
-    } catch {}
+    try { localStorage.setItem('quantrex_admin_portal_theme', theme); } catch {}
   }, [theme]);
 
   const handleToggleTheme = () => {
     setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  const handleUnlock = (e) => {
+  // Authentication logic supporting both Master Code and Supabase Auth
+  const handleAuthenticate = async (e) => {
     if (e) e.preventDefault();
-    const storedPin = localStorage.getItem('quantrex_admin_custom_pin') || DEFAULT_MASTER_PIN;
-    if (pin.trim() === storedPin || pin.trim() === 'quantrex2026' || pin.trim() === '2026') {
-      setIsUnlocked(true);
-      setErrorMsg('');
-      try {
-        sessionStorage.setItem('quantrex_admin_unlocked', 'true');
-      } catch {}
-    } else {
-      setErrorMsg('Incorrect Master PIN. Access Denied.');
-      setPin('');
+    setErrorMsg('');
+    setSuccessMsg('');
+    setLoading(true);
+
+    const savedMasterCode = localStorage.getItem('quantrex_admin_custom_code') || DEFAULT_MASTER_CODE;
+    const trimmedId = clientIdentifier.trim().toLowerCase();
+    const trimmedCode = accessCode.trim();
+
+    // 1. Direct Master Access Code Check
+    if (trimmedCode === savedMasterCode || trimmedCode === 'quantrex2026' || trimmedCode === '2026') {
+      setSuccessMsg('Access Code verified. Authenticating...');
+      setTimeout(() => {
+        setIsUnlocked(true);
+        setLoading(false);
+        try {
+          sessionStorage.setItem('quantrex_admin_unlocked', 'true');
+          if (rememberMe) localStorage.setItem('quantrex_admin_remembered', 'true');
+        } catch {}
+      }, 500);
+      return;
     }
+
+    // 2. Supabase Auth if Password is provided
+    if (password) {
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: trimmedId,
+          password: password,
+        });
+
+        if (!error && data?.user) {
+          const userEmail = data.user.email?.toLowerCase().trim();
+          const isMaster = userEmail === MASTER_EMAIL || adminRoles.some(a => a.email?.toLowerCase().trim() === userEmail);
+          
+          if (isMaster) {
+            setSuccessMsg('Founder credentials verified. Access granted.');
+            setTimeout(() => {
+              setIsUnlocked(true);
+              setLoading(false);
+              try {
+                sessionStorage.setItem('quantrex_admin_unlocked', 'true');
+                if (rememberMe) localStorage.setItem('quantrex_admin_remembered', 'true');
+              } catch {}
+            }, 500);
+            return;
+          } else {
+            setErrorMsg('Account authenticated but lacks Executive Administrator clearance.');
+            setLoading(false);
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('Supabase admin login error:', err);
+      }
+    }
+
+    // 3. Fallback error
+    setLoading(false);
+    setErrorMsg('Access Denied: Invalid Client Identifier, Access Code, or Password.');
   };
 
   const handleLock = () => {
     setIsUnlocked(false);
-    setPin('');
+    setAccessCode('');
+    setPassword('');
     try {
       sessionStorage.removeItem('quantrex_admin_unlocked');
+      localStorage.removeItem('quantrex_admin_remembered');
     } catch {}
   };
 
-  const handleSaveNewPin = (e) => {
+  const handleForgotPassword = () => {
+    alert('For security recovery of Quantrex Executive Credentials, please contact the primary founder at veloxadsphere@gmail.com or use your Master Access Code (2026).');
+  };
+
+  const handleSaveNewCode = (e) => {
     e.preventDefault();
-    if (!newPin || newPin.length < 4) {
-      setErrorMsg('PIN must be at least 4 digits');
+    if (!newCode || newCode.length < 4) {
+      setErrorMsg('Access code must be at least 4 characters');
       return;
     }
     try {
-      localStorage.setItem('quantrex_admin_custom_pin', newPin.trim());
-      setPinSuccessMsg('Master PIN updated successfully!');
+      localStorage.setItem('quantrex_admin_custom_code', newCode.trim());
+      setCodeSuccessMsg('Master Access Code updated successfully!');
       setTimeout(() => {
-        setPinSuccessMsg('');
-        setShowPinModal(false);
-        setNewPin('');
+        setCodeSuccessMsg('');
+        setShowCodeModal(false);
+        setNewCode('');
       }, 1500);
     } catch {
-      setErrorMsg('Failed to save new PIN.');
+      setErrorMsg('Failed to update code.');
     }
   };
 
-  // 1. PIN LOCK SCREEN
+  // ==========================================
+  // 1. EXACT REFERENCE ADMIN SIGN IN INTERFACE
+  // ==========================================
   if (!isUnlocked) {
     return (
-      <div className="min-h-screen w-full bg-[#06090e] text-slate-100 flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
-        {/* Ambient cyber glow */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-amber-500/10 rounded-full blur-[140px] pointer-events-none" />
-        <div className="absolute bottom-10 left-10 w-96 h-96 bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="min-h-screen w-full bg-[#07090e] text-slate-100 flex items-center justify-center p-4 relative overflow-hidden font-sans select-none">
+        
+        {/* Dynamic angled crimson shards & ambient laser background (matches image) */}
+        <div className="absolute inset-y-0 left-0 w-1/3 max-w-[420px] pointer-events-none overflow-hidden select-none z-0">
+          {/* Primary angled red beam */}
+          <div 
+            className="absolute inset-0 opacity-80"
+            style={{
+              background: 'linear-gradient(115deg, rgba(225,29,72,0.45) 0%, rgba(153,27,27,0.2) 35%, rgba(15,23,42,0) 70%)',
+              clipPath: 'polygon(0 0, 75% 0, 100% 100%, 0 100%)'
+            }}
+          />
+          {/* Glowing scarlet laser border edge */}
+          <div 
+            className="absolute top-0 bottom-0 left-[72%] w-[2px] bg-gradient-to-b from-transparent via-red-500 to-transparent opacity-80 shadow-[0_0_20px_#ef4444]"
+            style={{ transform: 'rotate(-7deg) scaleY(1.2)' }}
+          />
+          {/* Secondary deeper shard */}
+          <div 
+            className="absolute inset-0 opacity-40"
+            style={{
+              background: 'linear-gradient(135deg, rgba(239,68,68,0.6) 0%, rgba(0,0,0,0) 50%)',
+              clipPath: 'polygon(0 15%, 50% 0, 30% 100%, 0 85%)'
+            }}
+          />
+        </div>
 
-        <div className="w-full max-w-md relative z-10">
-          {/* Top Brand Banner */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-700 p-0.5 shadow-2xl shadow-amber-500/30 mb-5">
-              <div className="w-full h-full bg-[#0b0f17] rounded-[22px] flex items-center justify-center">
-                <Crown className="w-10 h-10 text-amber-400 stroke-[2.2]" />
-              </div>
-            </div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold tracking-wider uppercase mb-3">
-              <ShieldCheck size={14} className="text-amber-400" />
-              Founder Root Clearance
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Quantrex Master Control
-            </h1>
-            <p className="text-sm text-slate-400 mt-1.5">
-              Executive owner access for <span className="text-amber-400 font-semibold">{MASTER_EMAIL}</span>
-            </p>
-          </div>
+        {/* Ambient radial soft glow */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-red-600/5 rounded-full blur-[140px] pointer-events-none z-0" />
 
-          {/* Security Card */}
-          <div className="bg-[#0c111a]/95 border border-white/10 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl shadow-black/80">
-            <form onSubmit={handleUnlock} className="space-y-5">
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                  Master Security PIN
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPin ? 'text' : 'password'}
-                    value={pin}
-                    onChange={(e) => setPin(e.target.value)}
-                    placeholder="Enter 4-digit PIN"
-                    autoFocus
-                    maxLength={10}
-                    className="w-full px-4 py-3.5 bg-[#070a10] border border-white/10 rounded-2xl text-center text-2xl tracking-[0.4em] font-mono text-white placeholder:text-slate-600 focus:outline-none focus:border-amber-400/80 focus:ring-2 focus:ring-amber-500/20 transition-all"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPin(!showPin)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1"
-                  >
-                    {showPin ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
+        {/* Central Sign-In Container */}
+        <div className="w-full max-w-[440px] relative z-10">
+          <div className="bg-[#0c0f17]/95 border border-white/[0.08] rounded-[28px] p-7 sm:p-9 backdrop-blur-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85),0_0_40px_rgba(239,68,68,0.06)]">
+            
+            {/* Top Shield Icon Badge with Green Indicator */}
+            <div className="flex justify-center mb-5">
+              <div className="relative">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-500 via-red-600 to-red-700 p-0.5 shadow-xl shadow-red-600/35 flex items-center justify-center">
+                  <div className="w-full h-full bg-[#110d13] rounded-[14px] flex items-center justify-center">
+                    <ShieldAlert className="w-7 h-7 text-rose-500 stroke-[2.2]" />
+                  </div>
                 </div>
+                {/* Glowing Green Online Status Dot */}
+                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-[#0c0f17] shadow-[0_0_8px_rgba(52,211,153,0.9)]" />
+              </div>
+            </div>
+
+            {/* Category Subtitle */}
+            <div className="text-[11px] font-bold tracking-[0.25em] uppercase text-slate-400 text-center mb-2">
+              PLATFORM ADMINISTRATION
+            </div>
+
+            {/* Glowing Red Center Accent Line */}
+            <div className="w-12 h-[2.5px] rounded-full bg-gradient-to-r from-red-600 via-rose-500 to-red-600 mx-auto mb-4 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+
+            {/* Title */}
+            <h1 className="text-3xl font-black text-center text-white tracking-tight mb-2">
+              Admin <span className="text-red-500">Sign In</span>
+            </h1>
+
+            {/* Subtitle */}
+            <p className="text-xs text-slate-400/90 text-center leading-relaxed max-w-[280px] mx-auto mb-6">
+              Authorized personnel only. Access is restricted to the platform control panel.
+            </p>
+
+            {/* Form */}
+            <form onSubmit={handleAuthenticate}>
+              
+              {/* Boxed Inputs Container */}
+              <div className="bg-[#090c13]/70 border border-white/[0.06] rounded-2xl p-4 sm:p-5 space-y-4 mb-5">
+                
+                {/* 1. CLIENT IDENTIFIER */}
+                <div>
+                  <label className="block text-[10px] font-bold tracking-[0.18em] uppercase text-slate-400 mb-2">
+                    CLIENT IDENTIFIER
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                      <User size={16} />
+                    </div>
+                    <input
+                      type="text"
+                      value={clientIdentifier}
+                      onChange={(e) => setClientIdentifier(e.target.value)}
+                      placeholder="Enter your admin ID"
+                      required
+                      className="w-full pl-10 pr-4 py-2.5 bg-[#06080e] border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-500/80 focus:ring-1 focus:ring-red-500/40 transition-all font-sans"
+                    />
+                  </div>
+                </div>
+
+                {/* 2. ACCESS CODE */}
+                <div>
+                  <label className="block text-[10px] font-bold tracking-[0.18em] uppercase text-slate-400 mb-2">
+                    ACCESS CODE
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                      <Key size={16} />
+                    </div>
+                    <input
+                      type="password"
+                      value={accessCode}
+                      onChange={(e) => setAccessCode(e.target.value)}
+                      placeholder="Enter access code"
+                      className="w-full pl-10 pr-4 py-2.5 bg-[#06080e] border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-500/80 focus:ring-1 focus:ring-red-500/40 transition-all font-sans"
+                    />
+                  </div>
+                </div>
+
+                {/* 3. PASSWORD */}
+                <div>
+                  <label className="block text-[10px] font-bold tracking-[0.18em] uppercase text-slate-400 mb-2">
+                    PASSWORD
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                      <Lock size={16} />
+                    </div>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter your password"
+                      className="w-full pl-10 pr-10 py-2.5 bg-[#06080e] border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-500/80 focus:ring-1 focus:ring-red-500/40 transition-all font-sans"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300 transition-colors"
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
               </div>
 
+              {/* Status/Error Messages */}
               {errorMsg && (
-                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-semibold flex items-center gap-2">
-                  <AlertTriangle size={15} />
+                <div className="p-3 mb-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-semibold flex items-center gap-2">
+                  <AlertCircle size={15} />
                   <span>{errorMsg}</span>
                 </div>
               )}
 
-              {/* Quick keypad for fast mobile/touch access */}
-              <div className="grid grid-cols-3 gap-2 pt-1">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 'C', 0, '⌫'].map((k) => (
-                  <button
-                    key={k}
-                    type="button"
-                    onClick={() => {
-                      if (k === 'C') setPin('');
-                      else if (k === '⌫') setPin(prev => prev.slice(0, -1));
-                      else setPin(prev => (prev.length < 8 ? prev + k : prev));
-                    }}
-                    className="h-11 rounded-xl bg-white/[0.04] hover:bg-white/[0.09] active:scale-95 border border-white/5 text-slate-200 font-mono text-base font-bold flex items-center justify-center transition-all cursor-pointer"
-                  >
-                    {k}
-                  </button>
-                ))}
+              {successMsg && (
+                <div className="p-3 mb-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold flex items-center gap-2">
+                  <CheckCircle2 size={15} />
+                  <span>{successMsg}</span>
+                </div>
+              )}
+
+              {/* Remember me & Forgot Password Row */}
+              <div className="flex items-center justify-between text-xs mb-5 px-1">
+                <label className="flex items-center gap-2 cursor-pointer select-none text-slate-400 hover:text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="w-3.5 h-3.5 rounded bg-[#06080e] border-white/20 text-red-600 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                  />
+                  <span>Remember me</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-red-500 hover:text-red-400 font-semibold transition-colors flex items-center gap-1 group"
+                >
+                  <span>Forgot password?</span>
+                  <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
+                </button>
               </div>
 
+              {/* Primary Action Button */}
               <button
                 type="submit"
-                className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-slate-950 font-black text-sm tracking-wide shadow-lg shadow-amber-500/25 hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer mt-4"
+                disabled={loading}
+                className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-500 hover:via-rose-500 hover:to-red-500 text-white font-bold text-sm tracking-wide shadow-lg shadow-red-600/35 hover:shadow-red-600/50 hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer mb-5 disabled:opacity-50"
               >
-                <Unlock size={17} className="stroke-[2.5]" />
-                Authenticate & Open Console
+                {loading ? (
+                  <RefreshCw size={17} className="animate-spin" />
+                ) : (
+                  <Lock size={17} className="stroke-[2.2]" />
+                )}
+                <span>{loading ? 'Verifying Credentials...' : 'Authenticate & Enter'}</span>
               </button>
-            </form>
 
-            <div className="mt-6 pt-5 border-t border-white/5 flex items-center justify-between text-xs text-slate-500">
-              <span className="flex items-center gap-1.5">
-                <Lock size={12} className="text-amber-400" /> Default PIN: <code className="text-amber-400/90 font-mono font-bold">2026</code>
-              </span>
-              <a
-                href="./index.html"
-                className="text-slate-400 hover:text-white flex items-center gap-1 transition-colors"
-              >
-                Go to Client App <ArrowRight size={12} />
-              </a>
-            </div>
+              {/* Capsule Security Badge */}
+              <div className="flex justify-center mb-6">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#051412] border border-emerald-500/30 text-[10px] font-bold tracking-[0.2em] uppercase text-slate-300 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399] animate-pulse" />
+                  <span>SECURE ACCESS ONLY</span>
+                </div>
+              </div>
+
+              {/* Horizontal Divider with Red Center Tick */}
+              <div className="relative mb-5 flex items-center justify-center">
+                <div className="w-full border-t border-white/[0.06]" />
+                <div className="absolute w-8 h-[2px] bg-red-600 rounded-full shadow-[0_0_6px_rgba(239,68,68,0.8)]" />
+              </div>
+
+              {/* Back to Website Link */}
+              <div className="text-center">
+                <a
+                  href="./index.html"
+                  className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors"
+                >
+                  <ArrowLeft size={13} />
+                  <span>Back to Website</span>
+                </a>
+              </div>
+
+            </form>
           </div>
         </div>
       </div>
     );
   }
 
-  // 2. UNLOCKED MASTER ADMIN ENVIRONMENT
+  // ==========================================
+  // 2. UNLOCKED EXECUTIVE ADMIN CONSOLE
+  // ==========================================
   return (
     <div className={`min-h-screen w-full ${theme === 'dark' ? 'bg-[#06090e] text-slate-100' : 'bg-slate-100 text-slate-900'} antialiased transition-colors font-sans`}>
       {/* Master Top Bar */}
@@ -315,13 +488,13 @@ function AdminPortalApp() {
         theme === 'dark' ? 'bg-[#090d15]/90 border-white/10' : 'bg-white/90 border-slate-200'
       } px-4 lg:px-8 py-3 flex items-center justify-between`}>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-md shadow-amber-500/20">
-            <Crown size={22} className="text-slate-950 stroke-[2.5]" />
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-rose-700 flex items-center justify-center shadow-md shadow-red-500/20">
+            <Crown size={22} className="text-white stroke-[2.5]" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <span className="font-black text-base sm:text-lg tracking-tight">Quantrex Master Portal</span>
-              <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black tracking-wider uppercase bg-amber-500/15 text-amber-400 border border-amber-500/30">
+              <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black tracking-wider uppercase bg-red-500/15 text-red-400 border border-red-500/30">
                 <Sparkles size={10} /> Root Executive
               </span>
             </div>
@@ -351,16 +524,16 @@ function AdminPortalApp() {
 
           <button
             type="button"
-            onClick={() => setShowPinModal(true)}
+            onClick={() => setShowCodeModal(true)}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
               theme === 'dark'
                 ? 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'
                 : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
             }`}
-            title="Change Master Security PIN"
+            title="Change Master Access Code"
           >
-            <KeyRound size={13} className="text-amber-400" />
-            <span className="hidden sm:inline">Change PIN</span>
+            <KeyRound size={13} className="text-red-400" />
+            <span className="hidden sm:inline">Change Code</span>
           </button>
 
           <button
@@ -413,43 +586,43 @@ function AdminPortalApp() {
         />
       </main>
 
-      {/* Change PIN Modal */}
-      {showPinModal && (
+      {/* Change Code Modal */}
+      {showCodeModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="w-full max-w-sm bg-[#0c111a] border border-white/10 rounded-3xl p-6 shadow-2xl">
             <h3 className="text-lg font-black text-white mb-2 flex items-center gap-2">
-              <KeyRound size={18} className="text-amber-400" /> Change Master PIN
+              <KeyRound size={18} className="text-red-400" /> Change Access Code
             </h3>
             <p className="text-xs text-slate-400 mb-4">
-              Set a new custom PIN for owner authentication to this secret portal.
+              Set a new custom Access Code for authenticating to this executive portal.
             </p>
-            <form onSubmit={handleSaveNewPin} className="space-y-4">
+            <form onSubmit={handleSaveNewCode} className="space-y-4">
               <input
                 type="text"
-                value={newPin}
-                onChange={(e) => setNewPin(e.target.value)}
-                placeholder="Enter new 4-8 digit PIN"
-                maxLength={8}
-                className="w-full px-4 py-3 bg-[#070a10] border border-white/10 rounded-xl text-center text-xl font-mono text-white focus:outline-none focus:border-amber-400"
+                value={newCode}
+                onChange={(e) => setNewCode(e.target.value)}
+                placeholder="Enter new access code"
+                maxLength={16}
+                className="w-full px-4 py-3 bg-[#070a10] border border-white/10 rounded-xl text-center text-xl font-mono text-white focus:outline-none focus:border-red-500"
               />
-              {pinSuccessMsg && (
+              {codeSuccessMsg && (
                 <div className="text-xs font-semibold text-emerald-400 flex items-center gap-1.5">
-                  <CheckCircle size={14} /> {pinSuccessMsg}
+                  <CheckCircle2 size={14} /> {codeSuccessMsg}
                 </div>
               )}
               <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={() => setShowPinModal(false)}
+                  onClick={() => setShowCodeModal(false)}
                   className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-300 text-xs font-bold hover:bg-white/10"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-amber-500 text-slate-950 text-xs font-black hover:bg-amber-400"
+                  className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-xs font-black hover:bg-red-500"
                 >
-                  Save PIN
+                  Save Code
                 </button>
               </div>
             </form>
