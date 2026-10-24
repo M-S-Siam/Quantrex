@@ -214,7 +214,7 @@ function AdminPortalApp() {
   }, [mockPlatformUsers]);
 
   useEffect(() => {
-    try { localStorage.setItem('quantrex_global_announcement', JSON.stringify(globalAnnouncement)); } catch {}
+    try { localStorage.removeItem('quantrex_global_announcement'); } catch {}
   }, [globalAnnouncement]);
 
   // Apply theme class

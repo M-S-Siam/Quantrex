@@ -281,23 +281,7 @@ export default function AdminConsoleView({
           </span>
         </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('payments')}
-          className={'px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ' + (
-            activeTab === 'payments'
-              ? 'bg-amber-500 text-slate-950 shadow-md font-black'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-          )}
-        >
-          <CreditCard size={14} />
-          <span>Payment Approvals</span>
-          {pendingPaymentsCount > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-rose-500 text-white font-extrabold animate-pulse">
-              {pendingPaymentsCount}
-            </span>
-          )}
-        </button>
+        
 
         <button
           type="button"
@@ -317,21 +301,7 @@ export default function AdminConsoleView({
           )}
         </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('announcements')}
-          className={'px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ' + (
-            activeTab === 'announcements'
-              ? 'bg-amber-500 text-slate-950 shadow-md font-black'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-          )}
-        >
-          <Bell size={14} />
-          <span>Broadcast Notice</span>
-          {annEnabled && (
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          )}
-        </button>
+        
 
         <button
           type="button"

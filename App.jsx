@@ -551,6 +551,13 @@ export default function AdLedgerApp() {
     { email: 'veloxadsphere@gmail.com', role: 'Super Admin', addedAt: '2026-10-23', status: 'Active' }
   ]);
 
+    // Cleanup any stray announcement cache
+  useEffect(() => {
+    try {
+      localStorage.removeItem('quantrex_global_announcement');
+    } catch {}
+  }, []);
+
   const [globalAnnouncement, setGlobalAnnouncement] = useLocalStorage('quantrex_global_announcement', {
     enabled: false,
     title: 'Special Launching Offer: Starter Plan Now Only ৳500',
@@ -1860,26 +1867,6 @@ export default function AdLedgerApp() {
 
           {/* SCROLLABLE CONTENT */}
           <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
-            {globalAnnouncement?.enabled && globalAnnouncement?.message && currentView !== 'admin-console' && (
-              <div className="mb-5 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-amber-600/15 border border-amber-500/30 flex items-center justify-between gap-3 text-amber-950 dark:text-amber-200 animate-in fade-in slide-in-from-top-2">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center shrink-0">
-                    <Sparkles size={16} />
-                  </div>
-                  <div>
-                    <strong className="text-xs font-black block">{globalAnnouncement.title}</strong>
-                    <div className="text-[11.5px] opacity-90">{globalAnnouncement.message}</div>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setCurrentView('subscription')}
-                  className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black shrink-0 transition-all shadow-xs cursor-pointer"
-                >
-                  View Details
-                </button>
-              </div>
-            )}
             {renderContent()}
           </div>
         </main>
