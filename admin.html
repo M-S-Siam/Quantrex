@@ -28,6 +28,17 @@
         } catch (e) {}
       })();
     </script>
+      <script>
+      (function() {
+        try {
+          var h = window.location.hash || '';
+          var s = window.location.search || '';
+          if (h.includes('recovery') || h.includes('access_token') || s.includes('recovery') || s.includes('code=')) {
+            sessionStorage.setItem('quantrex_recovery_mode', 'true');
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body class="dark bg-[#06090e] text-slate-100 antialiased selection:bg-amber-500 selection:text-black">
     <div id="admin-root"></div>

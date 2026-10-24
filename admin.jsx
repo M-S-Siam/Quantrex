@@ -16,6 +16,21 @@ const DEFAULT_MASTER_CODE = '6202';
 const MASTER_EMAIL = 'mdshahariar307@gmail.com';
 
 function AdminPortalApp() {
+    // Password Recovery Mode State (Checked immediately on frame 1)
+  const [isRecoveryMode, setIsRecoveryMode] = useState(() => {
+    try {
+      const h = typeof window !== 'undefined' ? window.location.hash : '';
+      const s = typeof window !== 'undefined' ? window.location.search : '';
+      return (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('quantrex_recovery_mode') === 'true') ||
+             h.includes('recovery') ||
+             h.includes('access_token') ||
+             s.includes('recovery') ||
+             s.includes('code=');
+    } catch {
+      return false;
+    }
+  });
+
   const [theme, setTheme] = useState(() => {
     try {
       return localStorage.getItem('quantrex_admin_portal_theme') || 'dark';
@@ -53,17 +68,23 @@ function AdminPortalApp() {
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
-    // Supabase Auth listener for password recovery
+
+
+    // Supabase Auth recovery listener
   useEffect(() => {
     try {
-      if (window.location.hash.includes('type=recovery') || window.location.search.includes('type=recovery')) {
+      const h = window.location.hash || '';
+      const s = window.location.search || '';
+      if (sessionStorage.getItem('quantrex_recovery_mode') === 'true' || h.includes('recovery') || h.includes('access_token') || s.includes('code=')) {
         setIsRecoveryMode(true);
       }
+
       const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-        if (event === 'PASSWORD_RECOVERY') {
+        if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && sessionStorage.getItem('quantrex_recovery_mode') === 'true')) {
           setIsRecoveryMode(true);
         }
       });
+
       return () => {
         subscription?.unsubscribe();
       };
@@ -81,15 +102,7 @@ function AdminPortalApp() {
     }
   });
 
-      // Password Recovery Mode State
-  const [isRecoveryMode, setIsRecoveryMode] = useState(() => {
-    try {
-      return window.location.hash.includes('type=recovery') || 
-             window.location.search.includes('type=recovery');
-    } catch {
-      return false;
-    }
-  });
+  
   const [newRecoveryPass, setNewRecoveryPass] = useState('');
   const [confirmRecoveryPass, setConfirmRecoveryPass] = useState('');
   const [showNewPass, setShowNewPass] = useState(false);
@@ -356,6 +369,7 @@ function AdminPortalApp() {
         window.history.replaceState(null, '', window.location.pathname);
       }
 
+      try { sessionStorage.removeItem('quantrex_recovery_mode'); } catch {}
       setTimeout(() => {
         setIsRecoveryMode(false);
         setIsUnlocked(true);
@@ -542,7 +556,7 @@ function AdminPortalApp() {
               <div className="text-center">
                 <button
                   type="button"
-                  onClick={() => setIsRecoveryMode(false)}
+                  onClick={() => { try { sessionStorage.removeItem('quantrex_recovery_mode'); } catch {}; setIsRecoveryMode(false); }}
                   className="text-xs text-slate-400 hover:text-white transition-colors"
                 >
                   Cancel & Back to Sign In
@@ -839,6 +853,18 @@ function AdminPortalApp() {
                   >
                     {forgotLoading ? <RefreshCw size={14} className="animate-spin" /> : null}
                     <span>{forgotLoading ? 'Sending...' : 'Send Link'}</span>
+                  </button>
+                </div>
+                              <div className="pt-2 border-t border-white/5 text-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowForgotModal(false);
+                      setIsRecoveryMode(true);
+                    }}
+                    className="text-[11px] text-red-400 hover:text-red-300 font-semibold underline underline-offset-2 transition-colors cursor-pointer"
+                  >
+                    Click here to set new password directly
                   </button>
                 </div>
               </form>
