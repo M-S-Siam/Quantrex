@@ -25,7 +25,7 @@ function AdminPortalApp() {
   });
 
   // Auth Inputs matching reference image
-  const [clientIdentifier, setClientIdentifier] = useState('veloxadsphere@gmail.com');
+  const [clientIdentifier, setClientIdentifier] = useState('');
   const [accessCode, setAccessCode] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -164,7 +164,7 @@ function AdminPortalApp() {
     setLoading(true);
 
     const savedMasterCode = localStorage.getItem('quantrex_admin_custom_code') || DEFAULT_MASTER_CODE;
-    const trimmedId = clientIdentifier.trim().toLowerCase();
+    const trimmedId = clientIdentifier.trim().toLowerCase() || MASTER_EMAIL;
     const trimmedCode = accessCode.trim();
 
     // 1. Direct Master Access Code Check
@@ -342,7 +342,6 @@ function AdminPortalApp() {
                       value={clientIdentifier}
                       onChange={(e) => setClientIdentifier(e.target.value)}
                       placeholder="Enter your admin ID"
-                      required
                       className="w-full pl-10 pr-4 py-2.5 bg-[#06080e] border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-500/80 focus:ring-1 focus:ring-red-500/40 transition-all font-sans"
                     />
                   </div>
