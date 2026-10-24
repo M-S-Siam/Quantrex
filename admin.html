@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="./favicon.png" />
+    <title>Quantrex Master Admin Portal</title>
+    <style>
+      /* Zero-flash dark base */
+      html.dark, html.dark body {
+        background-color: #06090e !important;
+        color: #f1f5f9;
+      }
+    </style>
+    <script>
+      (function() {
+        try {
+          var t = localStorage.getItem('quantrex_admin_portal_theme');
+          var isDark = true;
+          if (t === 'light') isDark = false;
+          if (isDark) {
+            document.documentElement.classList.add('dark');
+            if (document.body) document.body.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+            if (document.body) document.body.classList.remove('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body class="dark bg-[#06090e] text-slate-100 antialiased selection:bg-amber-500 selection:text-black">
+    <div id="admin-root"></div>
+    <script type="module" src="/admin.jsx"></script>
+  </body>
+</html>

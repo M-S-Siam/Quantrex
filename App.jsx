@@ -1487,25 +1487,7 @@ export default function AdLedgerApp() {
             </div>
 
             <div className="flex items-center gap-3 pr-2 sm:pr-4">
-              {/* ADMIN CONSOLE PORTAL BUTTON */}
-              {isAdmin && (
-                <button
-                  type="button"
-                  onClick={() => setCurrentView(currentView === 'admin-console' ? 'dashboard' : 'admin-console')}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer select-none border ${
-                    currentView === 'admin-console'
-                      ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md font-black'
-                      : theme === 'dark'
-                        ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20 shadow-none'
-                        : 'bg-amber-50 border-amber-300 text-amber-800 hover:bg-amber-100 shadow-[3px_3px_8px_rgba(245,158,11,0.2)]'
-                  }`}
-                  title="Toggle Quantrex Master Admin Console"
-                >
-                  <Crown size={14} className="stroke-[2.5]" />
-                  <span>{currentView === 'admin-console' ? 'Exit Admin' : 'Admin Console'}</span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse ml-0.5" />
-                </button>
-              )}
+              {/* Admin console decoupled to admin.html */}
 
               {/* THEME TOGGLE (SUN ☀️ / MOON 🌙) */}
               <button
