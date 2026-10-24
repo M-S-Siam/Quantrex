@@ -450,9 +450,9 @@ function AdminPortalApp() {
                 <button
                   type="button"
                   onClick={handleForgotPassword}
-                  className="text-red-500 hover:text-red-400 font-semibold transition-colors flex items-center gap-1 group"
+                  className="text-red-500 hover:text-red-400 font-semibold transition-colors inline-flex items-center gap-0.5 group"
                 >
-                  <span>Forgot password?</span>
+                  <span>Forgot password</span>
                   <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
                 </button>
               </div>
