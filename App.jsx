@@ -1405,16 +1405,16 @@ export default function AdLedgerApp() {
           />
         )}
         {/* SIDEBAR (EXACT 4 FLOATING NEUMORPHIC PORTIONS) */}
-        <aside className={`fixed inset-y-0 left-0 z-50 w-64 ${theme === 'dark' ? 'bg-[#0a0d14] text-slate-200' : 'bg-[#ebf0f7] text-slate-800'} transition-transform transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:relative md:flex flex-col justify-between p-3.5 gap-3 h-screen overflow-y-auto no-scrollbar`}>
+        <aside className={`fixed inset-y-0 left-0 z-50 w-72 sm:w-64 ${theme === 'dark' ? 'bg-[#0a0d14] text-slate-200' : 'bg-[#ebf0f7] text-slate-800'} transition-transform transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:relative flex flex-col p-3 sm:p-3.5 gap-2.5 sm:gap-3 h-full max-h-screen md:h-screen overflow-y-auto no-scrollbar`}>
           
           {/* Top Wrapper for Portion 1, 2, 3 */}
-          <div className="space-y-3 flex flex-col gap-3 flex-1">
+          <div className="space-y-2.5 sm:space-y-3 flex flex-col gap-2.5 sm:gap-3">
             
             {/* PORTION 1: Top Active Agency Switcher Pill */}
             <div className={`rounded-2xl sm:rounded-3xl p-2 sm:p-3 transition-all border ${
               theme === 'dark'
                 ? 'bg-[#111722] border-white/10 shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
-                : 'bg-[#ebf0f7] border-white shadow-[5px_5px_14px_rgba(166,180,200,0.45),-5px_-5px_14px_#ffffff]'
+                : 'bg-white border-slate-200/90 shadow-[0_4px_18px_rgba(166,180,200,0.35)]'
             }`}>
               <div className="flex items-center gap-2.5">
                 {workspaceLogo ? (
@@ -1462,7 +1462,7 @@ export default function AdLedgerApp() {
             <div className={`rounded-2xl sm:rounded-3xl p-1.5 sm:p-2.5 space-y-1 sm:space-y-1.5 border ${
               theme === 'dark'
                 ? 'bg-[#111722] border-white/10 shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
-                : 'bg-[#ebf0f7] border-white shadow-[5px_5px_14px_rgba(166,180,200,0.45),-5px_-5px_14px_#ffffff]'
+                : 'bg-white border-slate-200/90 shadow-[0_4px_18px_rgba(166,180,200,0.35)]'
             }`}>
               <NavItem theme={theme} icon={<LayoutDashboard />} label="Dashboard" isActive={currentView === 'dashboard'} onClick={() => { setCurrentView('dashboard'); setIsMobileMenuOpen(false); }} />
               <NavItem theme={theme} icon={<Users />} label="Clients" isActive={currentView === 'clients'} onClick={() => { setCurrentView('clients'); setIsMobileMenuOpen(false); }} />
@@ -1476,7 +1476,7 @@ export default function AdLedgerApp() {
             <div className={`rounded-2xl sm:rounded-3xl p-1.5 sm:p-2.5 space-y-1 sm:space-y-1.5 border ${
               theme === 'dark'
                 ? 'bg-[#111722] border-white/10 shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
-                : 'bg-[#ebf0f7] border-white shadow-[5px_5px_14px_rgba(166,180,200,0.45),-5px_-5px_14px_#ffffff]'
+                : 'bg-white border-slate-200/90 shadow-[0_4px_18px_rgba(166,180,200,0.35)]'
             }`}>
               <p className={`px-3 pt-1 text-[9.5px] font-black uppercase tracking-wider ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>WORKSPACE</p>
               <NavItem theme={theme} icon={<Crown />} label="Subscriptions" isActive={currentView === 'subscription' || currentView === 'billing' || currentView === 'plans'} onClick={() => { setCurrentView('subscription'); setIsMobileMenuOpen(false); }} />
@@ -1492,7 +1492,7 @@ export default function AdLedgerApp() {
           <div className={`rounded-2xl sm:rounded-3xl p-2 sm:p-3 shrink-0 mt-1 sm:mt-2 border ${
             theme === 'dark'
               ? 'bg-[#111722] border-white/10 shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
-              : 'bg-[#ebf0f7] border-white shadow-[5px_5px_14px_rgba(166,180,200,0.45),-5px_-5px_14px_#ffffff]'
+              : 'bg-white border-slate-200/90 shadow-[0_4px_18px_rgba(166,180,200,0.35)]'
           }`}>
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-2xl overflow-hidden shrink-0 flex items-center justify-center border ${
