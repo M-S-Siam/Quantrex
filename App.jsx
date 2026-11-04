@@ -1411,7 +1411,7 @@ export default function AdLedgerApp() {
           <div className="space-y-3 flex flex-col gap-3 flex-1">
             
             {/* PORTION 1: Top Active Agency Switcher Pill */}
-            <div className={`rounded-3xl p-3 transition-all border ${
+            <div className={`rounded-2xl sm:rounded-3xl p-2 sm:p-3 transition-all border ${
               theme === 'dark'
                 ? 'bg-[#111722] border-white/10 shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
                 : 'bg-[#ebf0f7] border-white shadow-[5px_5px_14px_rgba(166,180,200,0.45),-5px_-5px_14px_#ffffff]'
@@ -1459,7 +1459,7 @@ export default function AdLedgerApp() {
             </div>
 
             {/* PORTION 2: Main Navigation Menu Card */}
-            <div className={`rounded-3xl p-2.5 space-y-1.5 border ${
+            <div className={`rounded-2xl sm:rounded-3xl p-1.5 sm:p-2.5 space-y-1 sm:space-y-1.5 border ${
               theme === 'dark'
                 ? 'bg-[#111722] border-white/10 shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
                 : 'bg-[#ebf0f7] border-white shadow-[5px_5px_14px_rgba(166,180,200,0.45),-5px_-5px_14px_#ffffff]'
@@ -1473,7 +1473,7 @@ export default function AdLedgerApp() {
             </div>
 
             {/* PORTION 3: Workspace Section Card */}
-            <div className={`rounded-3xl p-2.5 space-y-1.5 border ${
+            <div className={`rounded-2xl sm:rounded-3xl p-1.5 sm:p-2.5 space-y-1 sm:space-y-1.5 border ${
               theme === 'dark'
                 ? 'bg-[#111722] border-white/10 shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
                 : 'bg-[#ebf0f7] border-white shadow-[5px_5px_14px_rgba(166,180,200,0.45),-5px_-5px_14px_#ffffff]'
@@ -1489,7 +1489,7 @@ export default function AdLedgerApp() {
           </div>
 
           {/* PORTION 4: Bottom Platform Brand Card */}
-          <div className={`rounded-3xl p-3 shrink-0 mt-2 border ${
+          <div className={`rounded-2xl sm:rounded-3xl p-2 sm:p-3 shrink-0 mt-1 sm:mt-2 border ${
             theme === 'dark'
               ? 'bg-[#111722] border-white/10 shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
               : 'bg-[#ebf0f7] border-white shadow-[5px_5px_14px_rgba(166,180,200,0.45),-5px_-5px_14px_#ffffff]'
