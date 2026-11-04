@@ -1,0 +1,30 @@
+{
+  "name": "Quantrex",
+  "short_name": "Quantrex",
+  "description": "Quantrex — Financial Operating System & Ad Spend Intelligence",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0a0d14",
+  "theme_color": "#0a0d14",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "./quantrex-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./quantrex-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./favicon.png",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/png"
+    }
+  ]
+}

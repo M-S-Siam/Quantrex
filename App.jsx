@@ -530,6 +530,59 @@ const INITIAL_TEAM = [
 export default function AdLedgerApp() {
   const [currentView, setCurrentView] = useState('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [isStandalone, setIsStandalone] = useState(false);
+  const [showIosInstallModal, setShowIosInstallModal] = useState(false);
+  const [showPwaBanner, setShowPwaBanner] = useState(true);
+
+  useEffect(() => {
+    try {
+      const isStandaloneMode = 
+        (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+        (typeof window !== 'undefined' && window.navigator && window.navigator.standalone === true);
+      setIsStandalone(Boolean(isStandaloneMode));
+
+      const handleBeforeInstall = (e) => {
+        e.preventDefault();
+        setDeferredPrompt(e);
+      };
+
+      const handleAppInstalled = () => {
+        setIsStandalone(true);
+        setDeferredPrompt(null);
+        setShowPwaBanner(false);
+      };
+
+      window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+      window.addEventListener('appinstalled', handleAppInstalled);
+      return () => {
+        window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+        window.removeEventListener('appinstalled', handleAppInstalled);
+      };
+    } catch (e) {}
+  }, []);
+
+  const handleInstallApp = async () => {
+    if (deferredPrompt) {
+      try {
+        deferredPrompt.prompt();
+        const choice = await deferredPrompt.userChoice;
+        if (choice && choice.outcome === 'accepted') {
+          setDeferredPrompt(null);
+          setShowPwaBanner(false);
+          setIsStandalone(true);
+        }
+      } catch (err) {}
+      return;
+    }
+
+    const isIos = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (isIos) {
+      setShowIosInstallModal(true);
+    } else {
+      alert("To install Quantrex on your mobile:\n1. Tap your browser menu (⋮ or Share)\n2. Tap 'Install app' or 'Add to Home screen'");
+    }
+  };
 
   // State Data (Cloud + Local Cached)
   const [clients, setClients] = useLocalStorage('adledger_clients', INITIAL_CLIENTS);
@@ -1872,6 +1925,56 @@ export default function AdLedgerApp() {
         </main>
 
         {/* MODALS */}
+        {/* iOS Safari PWA Install Modal */}
+        {showIosInstallModal && (
+          <Modal title="Install Quantrex on iPhone / iPad" onClose={() => setShowIosInstallModal(false)} width="max-w-sm">
+            <div className="space-y-4 py-2">
+              <div className="flex items-center gap-3 p-3 rounded-2xl bg-sky-500/10 border border-sky-500/20">
+                <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 flex items-center justify-center bg-[#0a0d14] p-1">
+                  <img src="./quantrex-logo.png" alt="Quantrex" className="w-full h-full object-contain" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-white">Quantrex Mobile App</h4>
+                  <p className="text-xs text-sky-400 font-medium">Add to your Home Screen in 2 taps</p>
+                </div>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div className="flex items-start gap-3 p-2.5 rounded-xl bg-slate-800/40 border border-white/5">
+                  <span className="w-6 h-6 rounded-full bg-sky-500/20 text-sky-400 font-black flex items-center justify-center shrink-0">1</span>
+                  <div>
+                    <span className="font-bold text-white">Tap the Share icon</span>
+                    <p className="text-slate-400 mt-0.5">In Safari toolbar at the bottom, tap the Share button (⎋).</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-2.5 rounded-xl bg-slate-800/40 border border-white/5">
+                  <span className="w-6 h-6 rounded-full bg-sky-500/20 text-sky-400 font-black flex items-center justify-center shrink-0">2</span>
+                  <div>
+                    <span className="font-bold text-white">Select 'Add to Home Screen'</span>
+                    <p className="text-slate-400 mt-0.5">Scroll down and tap <strong>Add to Home Screen (➕)</strong>.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-2.5 rounded-xl bg-slate-800/40 border border-white/5">
+                  <span className="w-6 h-6 rounded-full bg-sky-500/20 text-sky-400 font-black flex items-center justify-center shrink-0">3</span>
+                  <div>
+                    <span className="font-bold text-white">Tap 'Add'</span>
+                    <p className="text-slate-400 mt-0.5">Tap <strong>Add</strong> in the top right. Quantrex will now launch as a full-screen app!</p>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowIosInstallModal(false)}
+                className="w-full py-2.5 px-4 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs transition-colors cursor-pointer"
+              >
+                Got It!
+              </button>
+            </div>
+          </Modal>
+        )}
         {activeModal === 'payment' && (
           <Modal title="Receive Client Payment" onClose={() => setActiveModal(null)}>
             <TransactionForm type="PAYMENT_RECEIVED" clients={clients} initialClientId={selectedClient?.id} onSubmit={handleAddTransaction} onCancel={() => setActiveModal(null)} />

@@ -2,14 +2,27 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <link rel="icon" type="image/png" href="./favicon.png" />
     <title>Quantrex</title>
+
+    <!-- PWA & Mobile Web App Meta -->
+    <link rel="manifest" href="./manifest.json" />
+    <meta name="theme-color" content="#0a0d14" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Quantrex" />
+    <link rel="apple-touch-icon" href="./quantrex-logo.png" />
+
     <style>
       /* Zero-flash dark base */
       html.dark, html.dark body {
         background-color: #0a0d14 !important;
         color: #f1f5f9;
+      }
+      /* Smooth touch scrolling & tap highlight */
+      * {
+        -webkit-tap-highlight-color: transparent;
       }
     </style>
     <script>
@@ -29,6 +42,13 @@
             if (document.body) document.body.classList.remove('dark');
           }
         } catch (e) {}
+
+        // Register PWA Service Worker
+        if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+          window.addEventListener('load', function() {
+            navigator.serviceWorker.register('./sw.js').catch(function() {});
+          });
+        }
       })();
     </script>
   </head>
