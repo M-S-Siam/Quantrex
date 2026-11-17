@@ -1,5 +1,5 @@
 // Quantrex PWA Service Worker
-const CACHE_NAME = 'quantrex-pwa-v1';
+const CACHE_NAME = 'quantrex-pwa-v2';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();

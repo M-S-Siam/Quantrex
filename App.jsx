@@ -12088,42 +12088,72 @@ function BillingPlansView({ subscription, onUpdate, businessName, onNavigate }) 
   const isProActive = subscription?.status === 'active';
   const activePlanName = subscription?.plan === 'lifetime_founder' ? 'Lifetime Plan' : subscription?.plan === 'pro_annual' ? 'Annual Plan' : 'Starter Plan';
 
-  // High-performance hardware-accelerated scroll & touch glow observer
+  // Mobile smooth scroll glow tracker & touch activation
   useEffect(() => {
     const isTouch = ('ontouchstart' in window || navigator.maxTouchPoints > 0) || window.innerWidth < 1024;
     if (!isTouch) return;
 
-    const cards = Array.from(document.querySelectorAll('.adl-plan-card'));
-    if (!cards.length) return;
+    let rafId = null;
 
-    // Native IntersectionObserver operates directly in compositor thread with 0 scroll listeners
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            cards.forEach((c) => {
-              if (c !== entry.target) {
-                c.classList.remove('adl-active-glow');
-              }
-            });
-            entry.target.classList.add('adl-active-glow');
+    const updateActiveGlow = () => {
+      const cards = Array.from(document.querySelectorAll('.adl-plan-card'));
+      if (!cards.length) return;
+
+      const viewportCenter = window.innerHeight / 2;
+      let closestCard = null;
+      let minDistance = Infinity;
+
+      for (let i = 0; i < cards.length; i++) {
+        const rect = cards[i].getBoundingClientRect();
+        const cardCenter = (rect.top + rect.bottom) / 2;
+        const dist = Math.abs(cardCenter - viewportCenter);
+        if (dist < minDistance) {
+          minDistance = dist;
+          closestCard = cards[i];
+        }
+      }
+
+      if (closestCard) {
+        cards.forEach((c) => {
+          if (c === closestCard) {
+            if (!c.classList.contains('adl-active-glow')) {
+              c.classList.add('adl-active-glow');
+            }
+          } else {
+            if (c.classList.contains('adl-active-glow')) {
+              c.classList.remove('adl-active-glow');
+            }
           }
         });
-      },
-      {
-        threshold: 0.2,
-        rootMargin: '-25% 0px -25% 0px'
       }
-    );
+    };
 
-    cards.forEach((card) => observer.observe(card));
+    const handleScroll = () => {
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        updateActiveGlow();
+      });
+    };
 
-    if (!document.querySelector('.adl-plan-card.adl-active-glow')) {
-      cards[0].classList.add('adl-active-glow');
-    }
+    // Initial check
+    updateActiveGlow();
+    const timer = setTimeout(updateActiveGlow, 150);
+
+    // Listen to scroll on window and every scrollable container
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    const scrollContainers = Array.from(document.querySelectorAll('.overflow-auto, main, body, html'));
+    scrollContainers.forEach((el) => {
+      el.addEventListener('scroll', handleScroll, { passive: true });
+    });
 
     return () => {
-      observer.disconnect();
+      clearTimeout(timer);
+      if (rafId) cancelAnimationFrame(rafId);
+      window.removeEventListener('scroll', handleScroll);
+      scrollContainers.forEach((el) => {
+        el.removeEventListener('scroll', handleScroll);
+      });
     };
   }, []);
 

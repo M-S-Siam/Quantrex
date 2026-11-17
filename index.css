@@ -1073,125 +1073,110 @@ body.dark *,
   position: relative !important;
   cursor: pointer !important;
   -webkit-tap-highlight-color: transparent !important;
-  transition: border-color 0.28s ease, box-shadow 0.28s ease !important;
+  transform: translateZ(0) !important;
+  will-change: border-color, box-shadow;
+  transition: border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 /* Inner Bloom Orb visibility */
 .adl-plan-card.adl-active-glow .adl-plan-bloom,
-.adl-plan-card:hover .adl-plan-bloom,
-.adl-plan-card:active .adl-plan-bloom {
+.adl-plan-card:hover .adl-plan-bloom {
   opacity: 1 !important;
 }
 
 /* Plan 1: Starter Agency (Sky Blue Neon Glow) - Dark Mode */
 .adl-shell.dark .adl-plan-starter.adl-active-glow,
-.adl-shell.dark .adl-plan-starter:active,
 html.dark .adl-plan-starter.adl-active-glow,
-html.dark .adl-plan-starter:active,
-body.dark .adl-plan-starter.adl-active-glow,
-body.dark .adl-plan-starter:active {
-  border-color: rgba(56, 189, 248, 0.85) !important;
-  box-shadow: 0 0 25px rgba(56, 189, 248, 0.45), 0 0 50px rgba(56, 189, 248, 0.16), 0 10px 24px rgba(0, 0, 0, 0.65) !important;
+body.dark .adl-plan-starter.adl-active-glow {
+  border-color: rgba(56, 189, 248, 0.9) !important;
+  box-shadow: 0 0 25px rgba(56, 189, 248, 0.45), 0 0 50px rgba(56, 189, 248, 0.18), 0 10px 24px rgba(0, 0, 0, 0.65) !important;
 }
 
 /* Plan 2: Annual Pro Pass (Purple/Violet Neon Glow) - Dark Mode */
 .adl-shell.dark .adl-plan-pro.adl-active-glow,
-.adl-shell.dark .adl-plan-pro:active,
 html.dark .adl-plan-pro.adl-active-glow,
-html.dark .adl-plan-pro:active,
-body.dark .adl-plan-pro.adl-active-glow,
-body.dark .adl-plan-pro:active {
-  border-color: rgba(168, 85, 247, 0.85) !important;
-  box-shadow: 0 0 25px rgba(168, 85, 247, 0.45), 0 0 50px rgba(168, 85, 247, 0.16), 0 10px 24px rgba(0, 0, 0, 0.65) !important;
+body.dark .adl-plan-pro.adl-active-glow {
+  border-color: rgba(168, 85, 247, 0.9) !important;
+  box-shadow: 0 0 25px rgba(168, 85, 247, 0.45), 0 0 50px rgba(168, 85, 247, 0.18), 0 10px 24px rgba(0, 0, 0, 0.65) !important;
 }
 
 /* Plan 3: Lifetime Founder Access (Emerald Neon Glow) - Dark Mode */
 .adl-shell.dark .adl-plan-lifetime.adl-active-glow,
-.adl-shell.dark .adl-plan-lifetime:active,
 html.dark .adl-plan-lifetime.adl-active-glow,
-html.dark .adl-plan-lifetime:active,
-body.dark .adl-plan-lifetime.adl-active-glow,
-body.dark .adl-plan-lifetime:active {
-  border-color: rgba(16, 185, 129, 0.85) !important;
-  box-shadow: 0 0 25px rgba(16, 185, 129, 0.45), 0 0 50px rgba(16, 185, 129, 0.16), 0 10px 24px rgba(0, 0, 0, 0.65) !important;
+body.dark .adl-plan-lifetime.adl-active-glow {
+  border-color: rgba(16, 185, 129, 0.9) !important;
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.45), 0 0 50px rgba(16, 185, 129, 0.18), 0 10px 24px rgba(0, 0, 0, 0.65) !important;
 }
 
 /* Desktop Only: Smooth hover lift */
 @media (hover: hover) and (pointer: fine) {
   .adl-plan-card {
-    transition: transform 0.25s ease, border-color 0.28s ease, box-shadow 0.28s ease !important;
+    transition: transform 0.25s ease, border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
   .adl-shell.dark .adl-plan-starter:hover,
   html.dark .adl-plan-starter:hover,
   body.dark .adl-plan-starter:hover {
     transform: translateY(-5px) !important;
-    border-color: rgba(56, 189, 248, 0.85) !important;
-    box-shadow: 0 0 25px rgba(56, 189, 248, 0.45), 0 0 50px rgba(56, 189, 248, 0.16), 0 10px 24px rgba(0, 0, 0, 0.65) !important;
+    border-color: rgba(56, 189, 248, 0.9) !important;
+    box-shadow: 0 0 25px rgba(56, 189, 248, 0.45), 0 0 50px rgba(56, 189, 248, 0.18), 0 10px 24px rgba(0, 0, 0, 0.65) !important;
   }
   .adl-shell.dark .adl-plan-pro:hover,
   html.dark .adl-plan-pro:hover,
   body.dark .adl-plan-pro:hover {
     transform: translateY(-5px) !important;
-    border-color: rgba(168, 85, 247, 0.85) !important;
-    box-shadow: 0 0 25px rgba(168, 85, 247, 0.45), 0 0 50px rgba(168, 85, 247, 0.16), 0 10px 24px rgba(0, 0, 0, 0.65) !important;
+    border-color: rgba(168, 85, 247, 0.9) !important;
+    box-shadow: 0 0 25px rgba(168, 85, 247, 0.45), 0 0 50px rgba(168, 85, 247, 0.18), 0 10px 24px rgba(0, 0, 0, 0.65) !important;
   }
   .adl-shell.dark .adl-plan-lifetime:hover,
   html.dark .adl-plan-lifetime:hover,
   body.dark .adl-plan-lifetime:hover {
     transform: translateY(-5px) !important;
-    border-color: rgba(16, 185, 129, 0.85) !important;
-    box-shadow: 0 0 25px rgba(16, 185, 129, 0.45), 0 0 50px rgba(16, 185, 129, 0.16), 0 10px 24px rgba(0, 0, 0, 0.65) !important;
+    border-color: rgba(16, 185, 129, 0.9) !important;
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.45), 0 0 50px rgba(16, 185, 129, 0.18), 0 10px 24px rgba(0, 0, 0, 0.65) !important;
   }
   .adl-shell:not(.dark) .adl-plan-starter:hover,
   .adl-plan-starter:hover {
     transform: translateY(-5px) !important;
     border-color: rgba(2, 132, 199, 0.85) !important;
-    box-shadow: 0 0 25px rgba(2, 132, 199, 0.35), 0 0 45px rgba(2, 132, 199, 0.12), 0 12px 28px rgba(166, 180, 200, 0.45) !important;
+    box-shadow: 0 0 25px rgba(2, 132, 199, 0.35), 0 0 45px rgba(2, 132, 199, 0.15), 0 12px 28px rgba(166, 180, 200, 0.45) !important;
   }
   .adl-shell:not(.dark) .adl-plan-pro:hover,
   .adl-plan-pro:hover {
     transform: translateY(-5px) !important;
     border-color: rgba(124, 58, 237, 0.85) !important;
-    box-shadow: 0 0 25px rgba(124, 58, 237, 0.35), 0 0 45px rgba(124, 58, 237, 0.12), 0 12px 28px rgba(166, 180, 200, 0.45) !important;
+    box-shadow: 0 0 25px rgba(124, 58, 237, 0.35), 0 0 45px rgba(124, 58, 237, 0.15), 0 12px 28px rgba(166, 180, 200, 0.45) !important;
   }
   .adl-shell:not(.dark) .adl-plan-lifetime:hover,
   .adl-plan-lifetime:hover {
     transform: translateY(-5px) !important;
     border-color: rgba(5, 150, 105, 0.85) !important;
-    box-shadow: 0 0 25px rgba(5, 150, 105, 0.35), 0 0 45px rgba(5, 150, 105, 0.12), 0 12px 28px rgba(166, 180, 200, 0.45) !important;
+    box-shadow: 0 0 25px rgba(5, 150, 105, 0.35), 0 0 45px rgba(5, 150, 105, 0.15), 0 12px 28px rgba(166, 180, 200, 0.45) !important;
   }
 }
 
 /* Light Mode: Vibrant Neon Active & Touch/Scroll Glow */
 .adl-shell:not(.dark) .adl-plan-starter.adl-active-glow,
-.adl-shell:not(.dark) .adl-plan-starter:active,
-.adl-plan-starter.adl-active-glow,
-.adl-plan-starter:active {
+.adl-plan-starter.adl-active-glow {
   border-color: rgba(2, 132, 199, 0.85) !important;
-  box-shadow: 0 0 25px rgba(2, 132, 199, 0.35), 0 0 45px rgba(2, 132, 199, 0.12), 0 12px 28px rgba(166, 180, 200, 0.45) !important;
+  box-shadow: 0 0 25px rgba(2, 132, 199, 0.35), 0 0 45px rgba(2, 132, 199, 0.15), 0 12px 28px rgba(166, 180, 200, 0.45) !important;
 }
 
 .adl-shell:not(.dark) .adl-plan-pro.adl-active-glow,
-.adl-shell:not(.dark) .adl-plan-pro:active,
-.adl-plan-pro.adl-active-glow,
-.adl-plan-pro:active {
+.adl-plan-pro.adl-active-glow {
   border-color: rgba(124, 58, 237, 0.85) !important;
-  box-shadow: 0 0 25px rgba(124, 58, 237, 0.35), 0 0 45px rgba(124, 58, 237, 0.12), 0 12px 28px rgba(166, 180, 200, 0.45) !important;
+  box-shadow: 0 0 25px rgba(124, 58, 237, 0.35), 0 0 45px rgba(124, 58, 237, 0.15), 0 12px 28px rgba(166, 180, 200, 0.45) !important;
 }
 
 .adl-shell:not(.dark) .adl-plan-lifetime.adl-active-glow,
-.adl-shell:not(.dark) .adl-plan-lifetime:active,
-.adl-plan-lifetime.adl-active-glow,
-.adl-plan-lifetime:active {
+.adl-plan-lifetime.adl-active-glow {
   border-color: rgba(5, 150, 105, 0.85) !important;
-  box-shadow: 0 0 25px rgba(5, 150, 105, 0.35), 0 0 45px rgba(5, 150, 105, 0.12), 0 12px 28px rgba(166, 180, 200, 0.45) !important;
+  box-shadow: 0 0 25px rgba(5, 150, 105, 0.35), 0 0 45px rgba(5, 150, 105, 0.15), 0 12px 28px rgba(166, 180, 200, 0.45) !important;
 }
 
 /* On mobile / touch screens: NEVER shift transform during scroll to prevent stutter */
 @media (max-width: 1023px), (pointer: coarse) {
   .adl-shell .adl-plan-card,
   .adl-shell .adl-plan-card:hover,
-  .adl-shell .adl-plan-card:active,
   .adl-shell .adl-plan-card.adl-active-glow {
     transform: none !important;
   }
