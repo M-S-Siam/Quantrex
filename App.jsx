@@ -11736,8 +11736,6 @@ const PROMO_CODES = {
 };
 
 function BillingPlansView({ subscription, onUpdate, businessName, onNavigate }) {
-  const [activeGlowPlanId, setActiveGlowPlanId] = useState('starter_monthly');
-  const cardRefs = useRef({});
   const [checkoutPlan, setCheckoutPlan] = useState(null);
   const [checkoutStep, setCheckoutStep] = useState('payment'); // 'payment' (Step 2) | 'done' (Step 3)
   const [paymentMethod, setPaymentMethod] = useState('bkash'); // 'bkash' | 'nagad' | 'card' | 'bank'
@@ -12090,60 +12088,42 @@ function BillingPlansView({ subscription, onUpdate, businessName, onNavigate }) 
   const isProActive = subscription?.status === 'active';
   const activePlanName = subscription?.plan === 'lifetime_founder' ? 'Lifetime Plan' : subscription?.plan === 'pro_annual' ? 'Annual Plan' : 'Starter Plan';
 
-  // Mobile scroll & touch glow synchronization
+  // High-performance hardware-accelerated scroll & touch glow observer
   useEffect(() => {
-    const isMobileOrTouch =
-      (typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) ||
-      (typeof window !== 'undefined' && window.innerWidth < 1024);
+    const isTouch = ('ontouchstart' in window || navigator.maxTouchPoints > 0) || window.innerWidth < 1024;
+    if (!isTouch) return;
 
-    if (!isMobileOrTouch) return;
+    const cards = Array.from(document.querySelectorAll('.adl-plan-card'));
+    if (!cards.length) return;
 
-    let ticking = false;
-
-    const handleScroll = () => {
-      if (ticking) return;
-      ticking = true;
-
-      requestAnimationFrame(() => {
-        ticking = false;
-        const viewportCenter = window.innerHeight / 2;
-        let closestId = null;
-        let minDistance = Infinity;
-
-        plans.forEach((p) => {
-          const el = cardRefs.current[p.id];
-          if (el) {
-            const rect = el.getBoundingClientRect();
-            if (rect.bottom > 80 && rect.top < window.innerHeight - 80) {
-              const cardCenter = rect.top + rect.height / 2;
-              const dist = Math.abs(cardCenter - viewportCenter);
-              if (dist < minDistance) {
-                minDistance = dist;
-                closestId = p.id;
+    // Native IntersectionObserver operates directly in compositor thread with 0 scroll listeners
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            cards.forEach((c) => {
+              if (c !== entry.target) {
+                c.classList.remove('adl-active-glow');
               }
-            }
+            });
+            entry.target.classList.add('adl-active-glow');
           }
         });
+      },
+      {
+        threshold: 0.2,
+        rootMargin: '-25% 0px -25% 0px'
+      }
+    );
 
-        if (closestId) {
-          setActiveGlowPlanId(closestId);
-        }
-      });
-    };
+    cards.forEach((card) => observer.observe(card));
 
-    handleScroll();
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    const scrollContainers = Array.from(document.querySelectorAll('.overflow-auto, main, body, html'));
-    scrollContainers.forEach((c) => {
-      c.addEventListener('scroll', handleScroll, { passive: true });
-    });
+    if (!document.querySelector('.adl-plan-card.adl-active-glow')) {
+      cards[0].classList.add('adl-active-glow');
+    }
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
-      scrollContainers.forEach((c) => {
-        c.removeEventListener('scroll', handleScroll);
-      });
+      observer.disconnect();
     };
   }, []);
 
@@ -12181,35 +12161,50 @@ function BillingPlansView({ subscription, onUpdate, businessName, onNavigate }) 
 
       {/* PLAN PRICING COMPARISON CARDS (UNIFIED LUXURY NEUMORPHIC SOFT UI WHITE) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {plans.map((plan) => {
+        {plans.map((plan, index) => {
           const planGlowClass = plan.id === 'starter_monthly'
             ? 'adl-plan-starter'
             : plan.id === 'pro_annual'
               ? 'adl-plan-pro'
               : 'adl-plan-lifetime';
-          const isGlowActive = activeGlowPlanId === plan.id;
 
           return (
             <div
               key={plan.id}
-              ref={(el) => { cardRefs.current[plan.id] = el; }}
-              onTouchStart={() => setActiveGlowPlanId(plan.id)}
-              onPointerDown={() => setActiveGlowPlanId(plan.id)}
-              onClick={() => setActiveGlowPlanId(plan.id)}
-              className={`adl-plan-card ${planGlowClass} ${isGlowActive ? 'adl-active-glow' : ''} rounded-3xl p-6 bg-[#ebf0f7] border border-white text-slate-900 relative flex flex-col justify-between select-none shadow-[6px_6px_16px_rgba(166,180,200,0.45),-6px_-6px_16px_#ffffff] cursor-pointer group overflow-hidden`}
+              data-plan-id={plan.id}
+              onTouchStart={(e) => {
+                const target = e.currentTarget;
+                const container = target.parentElement;
+                if (container) {
+                  container.querySelectorAll('.adl-plan-card').forEach((c) => {
+                    if (c !== target) c.classList.remove('adl-active-glow');
+                  });
+                }
+                target.classList.add('adl-active-glow');
+              }}
+              onClick={(e) => {
+                const target = e.currentTarget;
+                const container = target.parentElement;
+                if (container) {
+                  container.querySelectorAll('.adl-plan-card').forEach((c) => {
+                    if (c !== target) c.classList.remove('adl-active-glow');
+                  });
+                }
+                target.classList.add('adl-active-glow');
+              }}
+              className={`adl-plan-card ${planGlowClass} ${index === 0 ? 'adl-active-glow' : ''} rounded-3xl p-6 bg-[#ebf0f7] border border-white text-slate-900 relative flex flex-col justify-between select-none shadow-[6px_6px_16px_rgba(166,180,200,0.45),-6px_-6px_16px_#ffffff] cursor-pointer group overflow-hidden`}
             >
-              {/* Ambient Accent Neon Bloom Orb */}
+              {/* Ultra-smooth hardware-accelerated radial bloom orb (zero filter blur overhead) */}
               <div
                 aria-hidden="true"
-                className={`absolute -top-12 -right-12 w-44 h-44 rounded-full blur-3xl pointer-events-none transition-all duration-300 ${
-                  isGlowActive ? 'opacity-30 scale-110' : 'opacity-0 group-hover:opacity-20 scale-100'
-                } ${
-                  plan.id === 'starter_monthly'
-                    ? 'bg-sky-400'
+                className="adl-plan-bloom pointer-events-none absolute -top-10 -right-10 w-48 h-48 rounded-full transition-opacity duration-300 opacity-0 group-hover:opacity-100"
+                style={{
+                  background: plan.id === 'starter_monthly'
+                    ? 'radial-gradient(circle, rgba(56, 189, 248, 0.32) 0%, rgba(56, 189, 248, 0.06) 50%, transparent 72%)'
                     : plan.id === 'pro_annual'
-                      ? 'bg-purple-500'
-                      : 'bg-emerald-400'
-                }`}
+                      ? 'radial-gradient(circle, rgba(168, 85, 247, 0.32) 0%, rgba(168, 85, 247, 0.06) 50%, transparent 72%)'
+                      : 'radial-gradient(circle, rgba(16, 185, 129, 0.32) 0%, rgba(16, 185, 129, 0.06) 50%, transparent 72%)'
+                }}
               />
               <div>
                 <div className="flex items-center justify-between gap-2 mb-3.5">

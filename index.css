@@ -1070,106 +1070,130 @@ body.dark *,
    PRICING PLAN CARDS HOVER & TOUCH/SCROLL GLOW (PC HOVER + MOBILE TOUCH & SCROLL)
    ========================================================================= */
 .adl-plan-card {
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  position: relative !important;
   cursor: pointer !important;
   -webkit-tap-highlight-color: transparent !important;
+  transition: border-color 0.28s ease, box-shadow 0.28s ease !important;
+}
+
+/* Inner Bloom Orb visibility */
+.adl-plan-card.adl-active-glow .adl-plan-bloom,
+.adl-plan-card:hover .adl-plan-bloom,
+.adl-plan-card:active .adl-plan-bloom {
+  opacity: 1 !important;
 }
 
 /* Plan 1: Starter Agency (Sky Blue Neon Glow) - Dark Mode */
-.adl-shell.dark .adl-plan-starter:hover,
-.adl-shell.dark .adl-plan-starter:active,
 .adl-shell.dark .adl-plan-starter.adl-active-glow,
-.adl-shell.dark .adl-plan-starter.adl-touch-glow,
-html.dark .adl-plan-starter:hover,
-html.dark .adl-plan-starter:active,
+.adl-shell.dark .adl-plan-starter:active,
 html.dark .adl-plan-starter.adl-active-glow,
-html.dark .adl-plan-starter.adl-touch-glow,
-body.dark .adl-plan-starter:hover,
-body.dark .adl-plan-starter:active,
+html.dark .adl-plan-starter:active,
 body.dark .adl-plan-starter.adl-active-glow,
-body.dark .adl-plan-starter.adl-touch-glow {
-  transform: translateY(-5px) !important;
+body.dark .adl-plan-starter:active {
   border-color: rgba(56, 189, 248, 0.85) !important;
-  box-shadow: 0 0 25px rgba(56, 189, 248, 0.45), 0 0 55px rgba(56, 189, 248, 0.2), 0 12px 30px -5px rgba(0, 0, 0, 0.85) !important;
+  box-shadow: 0 0 25px rgba(56, 189, 248, 0.45), 0 0 50px rgba(56, 189, 248, 0.16), 0 10px 24px rgba(0, 0, 0, 0.65) !important;
 }
 
 /* Plan 2: Annual Pro Pass (Purple/Violet Neon Glow) - Dark Mode */
-.adl-shell.dark .adl-plan-pro:hover,
-.adl-shell.dark .adl-plan-pro:active,
 .adl-shell.dark .adl-plan-pro.adl-active-glow,
-.adl-shell.dark .adl-plan-pro.adl-touch-glow,
-html.dark .adl-plan-pro:hover,
-html.dark .adl-plan-pro:active,
+.adl-shell.dark .adl-plan-pro:active,
 html.dark .adl-plan-pro.adl-active-glow,
-html.dark .adl-plan-pro.adl-touch-glow,
-body.dark .adl-plan-pro:hover,
-body.dark .adl-plan-pro:active,
+html.dark .adl-plan-pro:active,
 body.dark .adl-plan-pro.adl-active-glow,
-body.dark .adl-plan-pro.adl-touch-glow {
-  transform: translateY(-5px) !important;
+body.dark .adl-plan-pro:active {
   border-color: rgba(168, 85, 247, 0.85) !important;
-  box-shadow: 0 0 25px rgba(168, 85, 247, 0.45), 0 0 55px rgba(168, 85, 247, 0.2), 0 12px 30px -5px rgba(0, 0, 0, 0.85) !important;
+  box-shadow: 0 0 25px rgba(168, 85, 247, 0.45), 0 0 50px rgba(168, 85, 247, 0.16), 0 10px 24px rgba(0, 0, 0, 0.65) !important;
 }
 
 /* Plan 3: Lifetime Founder Access (Emerald Neon Glow) - Dark Mode */
-.adl-shell.dark .adl-plan-lifetime:hover,
-.adl-shell.dark .adl-plan-lifetime:active,
 .adl-shell.dark .adl-plan-lifetime.adl-active-glow,
-.adl-shell.dark .adl-plan-lifetime.adl-touch-glow,
-html.dark .adl-plan-lifetime:hover,
-html.dark .adl-plan-lifetime:active,
+.adl-shell.dark .adl-plan-lifetime:active,
 html.dark .adl-plan-lifetime.adl-active-glow,
-html.dark .adl-plan-lifetime.adl-touch-glow,
-body.dark .adl-plan-lifetime:hover,
-body.dark .adl-plan-lifetime:active,
+html.dark .adl-plan-lifetime:active,
 body.dark .adl-plan-lifetime.adl-active-glow,
-body.dark .adl-plan-lifetime.adl-touch-glow {
-  transform: translateY(-5px) !important;
+body.dark .adl-plan-lifetime:active {
   border-color: rgba(16, 185, 129, 0.85) !important;
-  box-shadow: 0 0 25px rgba(16, 185, 129, 0.45), 0 0 55px rgba(16, 185, 129, 0.2), 0 12px 30px -5px rgba(0, 0, 0, 0.85) !important;
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.45), 0 0 50px rgba(16, 185, 129, 0.16), 0 10px 24px rgba(0, 0, 0, 0.65) !important;
 }
 
-/* Light Mode: Vibrant Neon Hover, Active & Touch/Scroll Glow */
-.adl-shell:not(.dark) .adl-plan-starter:hover,
-.adl-shell:not(.dark) .adl-plan-starter:active,
+/* Desktop Only: Smooth hover lift */
+@media (hover: hover) and (pointer: fine) {
+  .adl-plan-card {
+    transition: transform 0.25s ease, border-color 0.28s ease, box-shadow 0.28s ease !important;
+  }
+  .adl-shell.dark .adl-plan-starter:hover,
+  html.dark .adl-plan-starter:hover,
+  body.dark .adl-plan-starter:hover {
+    transform: translateY(-5px) !important;
+    border-color: rgba(56, 189, 248, 0.85) !important;
+    box-shadow: 0 0 25px rgba(56, 189, 248, 0.45), 0 0 50px rgba(56, 189, 248, 0.16), 0 10px 24px rgba(0, 0, 0, 0.65) !important;
+  }
+  .adl-shell.dark .adl-plan-pro:hover,
+  html.dark .adl-plan-pro:hover,
+  body.dark .adl-plan-pro:hover {
+    transform: translateY(-5px) !important;
+    border-color: rgba(168, 85, 247, 0.85) !important;
+    box-shadow: 0 0 25px rgba(168, 85, 247, 0.45), 0 0 50px rgba(168, 85, 247, 0.16), 0 10px 24px rgba(0, 0, 0, 0.65) !important;
+  }
+  .adl-shell.dark .adl-plan-lifetime:hover,
+  html.dark .adl-plan-lifetime:hover,
+  body.dark .adl-plan-lifetime:hover {
+    transform: translateY(-5px) !important;
+    border-color: rgba(16, 185, 129, 0.85) !important;
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.45), 0 0 50px rgba(16, 185, 129, 0.16), 0 10px 24px rgba(0, 0, 0, 0.65) !important;
+  }
+  .adl-shell:not(.dark) .adl-plan-starter:hover,
+  .adl-plan-starter:hover {
+    transform: translateY(-5px) !important;
+    border-color: rgba(2, 132, 199, 0.85) !important;
+    box-shadow: 0 0 25px rgba(2, 132, 199, 0.35), 0 0 45px rgba(2, 132, 199, 0.12), 0 12px 28px rgba(166, 180, 200, 0.45) !important;
+  }
+  .adl-shell:not(.dark) .adl-plan-pro:hover,
+  .adl-plan-pro:hover {
+    transform: translateY(-5px) !important;
+    border-color: rgba(124, 58, 237, 0.85) !important;
+    box-shadow: 0 0 25px rgba(124, 58, 237, 0.35), 0 0 45px rgba(124, 58, 237, 0.12), 0 12px 28px rgba(166, 180, 200, 0.45) !important;
+  }
+  .adl-shell:not(.dark) .adl-plan-lifetime:hover,
+  .adl-plan-lifetime:hover {
+    transform: translateY(-5px) !important;
+    border-color: rgba(5, 150, 105, 0.85) !important;
+    box-shadow: 0 0 25px rgba(5, 150, 105, 0.35), 0 0 45px rgba(5, 150, 105, 0.12), 0 12px 28px rgba(166, 180, 200, 0.45) !important;
+  }
+}
+
+/* Light Mode: Vibrant Neon Active & Touch/Scroll Glow */
 .adl-shell:not(.dark) .adl-plan-starter.adl-active-glow,
-.adl-shell:not(.dark) .adl-plan-starter.adl-touch-glow,
-.adl-plan-starter:hover,
-.adl-plan-starter:active,
-.adl-plan-starter.adl-active-glow {
-  transform: translateY(-5px) !important;
+.adl-shell:not(.dark) .adl-plan-starter:active,
+.adl-plan-starter.adl-active-glow,
+.adl-plan-starter:active {
   border-color: rgba(2, 132, 199, 0.85) !important;
-  box-shadow: 0 0 25px rgba(2, 132, 199, 0.35), 0 0 50px rgba(2, 132, 199, 0.15), 0 12px 30px rgba(166, 180, 200, 0.45) !important;
+  box-shadow: 0 0 25px rgba(2, 132, 199, 0.35), 0 0 45px rgba(2, 132, 199, 0.12), 0 12px 28px rgba(166, 180, 200, 0.45) !important;
 }
 
-.adl-shell:not(.dark) .adl-plan-pro:hover,
-.adl-shell:not(.dark) .adl-plan-pro:active,
 .adl-shell:not(.dark) .adl-plan-pro.adl-active-glow,
-.adl-shell:not(.dark) .adl-plan-pro.adl-touch-glow,
-.adl-plan-pro:hover,
-.adl-plan-pro:active,
-.adl-plan-pro.adl-active-glow {
-  transform: translateY(-5px) !important;
+.adl-shell:not(.dark) .adl-plan-pro:active,
+.adl-plan-pro.adl-active-glow,
+.adl-plan-pro:active {
   border-color: rgba(124, 58, 237, 0.85) !important;
-  box-shadow: 0 0 25px rgba(124, 58, 237, 0.35), 0 0 50px rgba(124, 58, 237, 0.15), 0 12px 30px rgba(166, 180, 200, 0.45) !important;
+  box-shadow: 0 0 25px rgba(124, 58, 237, 0.35), 0 0 45px rgba(124, 58, 237, 0.12), 0 12px 28px rgba(166, 180, 200, 0.45) !important;
 }
 
-.adl-shell:not(.dark) .adl-plan-lifetime:hover,
-.adl-shell:not(.dark) .adl-plan-lifetime:active,
 .adl-shell:not(.dark) .adl-plan-lifetime.adl-active-glow,
-.adl-shell:not(.dark) .adl-plan-lifetime.adl-touch-glow,
-.adl-plan-lifetime:hover,
-.adl-plan-lifetime:active,
-.adl-plan-lifetime.adl-active-glow {
-  transform: translateY(-5px) !important;
+.adl-shell:not(.dark) .adl-plan-lifetime:active,
+.adl-plan-lifetime.adl-active-glow,
+.adl-plan-lifetime:active {
   border-color: rgba(5, 150, 105, 0.85) !important;
-  box-shadow: 0 0 25px rgba(5, 150, 105, 0.35), 0 0 50px rgba(5, 150, 105, 0.15), 0 12px 30px rgba(166, 180, 200, 0.45) !important;
+  box-shadow: 0 0 25px rgba(5, 150, 105, 0.35), 0 0 45px rgba(5, 150, 105, 0.12), 0 12px 28px rgba(166, 180, 200, 0.45) !important;
 }
 
-@media (max-width: 768px) {
-  .adl-shell .adl-plan-card.adl-active-glow,
-  .adl-shell .adl-plan-card:active {
-    transform: translateY(-3px) scale(1.008) !important;
+/* On mobile / touch screens: NEVER shift transform during scroll to prevent stutter */
+@media (max-width: 1023px), (pointer: coarse) {
+  .adl-shell .adl-plan-card,
+  .adl-shell .adl-plan-card:hover,
+  .adl-shell .adl-plan-card:active,
+  .adl-shell .adl-plan-card.adl-active-glow {
+    transform: none !important;
   }
 }
 
