@@ -11736,6 +11736,8 @@ const PROMO_CODES = {
 };
 
 function BillingPlansView({ subscription, onUpdate, businessName, onNavigate }) {
+  const [activeGlowPlanId, setActiveGlowPlanId] = useState('starter_monthly');
+  const cardRefs = useRef({});
   const [checkoutPlan, setCheckoutPlan] = useState(null);
   const [checkoutStep, setCheckoutStep] = useState('payment'); // 'payment' (Step 2) | 'done' (Step 3)
   const [paymentMethod, setPaymentMethod] = useState('bkash'); // 'bkash' | 'nagad' | 'card' | 'bank'
@@ -12088,6 +12090,63 @@ function BillingPlansView({ subscription, onUpdate, businessName, onNavigate }) 
   const isProActive = subscription?.status === 'active';
   const activePlanName = subscription?.plan === 'lifetime_founder' ? 'Lifetime Plan' : subscription?.plan === 'pro_annual' ? 'Annual Plan' : 'Starter Plan';
 
+  // Mobile scroll & touch glow synchronization
+  useEffect(() => {
+    const isMobileOrTouch =
+      (typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) ||
+      (typeof window !== 'undefined' && window.innerWidth < 1024);
+
+    if (!isMobileOrTouch) return;
+
+    let ticking = false;
+
+    const handleScroll = () => {
+      if (ticking) return;
+      ticking = true;
+
+      requestAnimationFrame(() => {
+        ticking = false;
+        const viewportCenter = window.innerHeight / 2;
+        let closestId = null;
+        let minDistance = Infinity;
+
+        plans.forEach((p) => {
+          const el = cardRefs.current[p.id];
+          if (el) {
+            const rect = el.getBoundingClientRect();
+            if (rect.bottom > 80 && rect.top < window.innerHeight - 80) {
+              const cardCenter = rect.top + rect.height / 2;
+              const dist = Math.abs(cardCenter - viewportCenter);
+              if (dist < minDistance) {
+                minDistance = dist;
+                closestId = p.id;
+              }
+            }
+          }
+        });
+
+        if (closestId) {
+          setActiveGlowPlanId(closestId);
+        }
+      });
+    };
+
+    handleScroll();
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    const scrollContainers = Array.from(document.querySelectorAll('.overflow-auto, main, body, html'));
+    scrollContainers.forEach((c) => {
+      c.addEventListener('scroll', handleScroll, { passive: true });
+    });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      scrollContainers.forEach((c) => {
+        c.removeEventListener('scroll', handleScroll);
+      });
+    };
+  }, []);
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* SPECIAL LAUNCH OFFER HERO BANNER */}
@@ -12128,12 +12187,30 @@ function BillingPlansView({ subscription, onUpdate, businessName, onNavigate }) 
             : plan.id === 'pro_annual'
               ? 'adl-plan-pro'
               : 'adl-plan-lifetime';
+          const isGlowActive = activeGlowPlanId === plan.id;
 
           return (
             <div
               key={plan.id}
-              className={`adl-plan-card ${planGlowClass} rounded-3xl p-6 bg-[#ebf0f7] border border-white text-slate-900 relative flex flex-col justify-between select-none shadow-[6px_6px_16px_rgba(166,180,200,0.45),-6px_-6px_16px_#ffffff] cursor-pointer group`}
+              ref={(el) => { cardRefs.current[plan.id] = el; }}
+              onTouchStart={() => setActiveGlowPlanId(plan.id)}
+              onPointerDown={() => setActiveGlowPlanId(plan.id)}
+              onClick={() => setActiveGlowPlanId(plan.id)}
+              className={`adl-plan-card ${planGlowClass} ${isGlowActive ? 'adl-active-glow' : ''} rounded-3xl p-6 bg-[#ebf0f7] border border-white text-slate-900 relative flex flex-col justify-between select-none shadow-[6px_6px_16px_rgba(166,180,200,0.45),-6px_-6px_16px_#ffffff] cursor-pointer group overflow-hidden`}
             >
+              {/* Ambient Accent Neon Bloom Orb */}
+              <div
+                aria-hidden="true"
+                className={`absolute -top-12 -right-12 w-44 h-44 rounded-full blur-3xl pointer-events-none transition-all duration-300 ${
+                  isGlowActive ? 'opacity-30 scale-110' : 'opacity-0 group-hover:opacity-20 scale-100'
+                } ${
+                  plan.id === 'starter_monthly'
+                    ? 'bg-sky-400'
+                    : plan.id === 'pro_annual'
+                      ? 'bg-purple-500'
+                      : 'bg-emerald-400'
+                }`}
+              />
               <div>
                 <div className="flex items-center justify-between gap-2 mb-3.5">
                   <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
