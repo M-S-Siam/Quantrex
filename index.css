@@ -427,6 +427,18 @@ body.dark {
   color: #f1f5f9 !important;
 }
 
+/* SIDEBAR IS PERMANENTLY OBSIDIAN DARK IN BOTH LIGHT & DARK MODES */
+.adl-shell aside {
+  background-color: #0a0d14 !important;
+  color: #f1f5f9 !important;
+}
+.adl-shell aside > div > div,
+.adl-shell aside [class*="rounded-3xl"],
+.adl-shell aside [class*="rounded-2xl"] {
+  background-color: #111722 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
 .adl-shell.dark main,
 .adl-shell.dark header,
 .adl-shell.dark aside {
