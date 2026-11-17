@@ -1321,12 +1321,10 @@ export default function AdLedgerApp() {
           box-shadow: 8px 0 25px rgba(166, 180, 200, 0.28) !important;
           color: #0f172a !important;
         }
-        .adl-shell:not(.dark) aside > div > div,
-        .adl-shell:not(.dark) aside [class*="rounded-3xl"],
-        .adl-shell:not(.dark) aside [class*="rounded-2xl"] {
+        .adl-shell:not(.dark) aside .adl-sidebar-card {
           background: #ffffff !important;
           border: 1px solid rgba(226, 232, 240, 0.9) !important;
-          box-shadow: 0 4px 18px rgba(166, 180, 200, 0.35) !important;
+          box-shadow: 0 4px 18px rgba(166, 180, 200, 0.25) !important;
         }
         /* SIDEBAR (DARK THEME - OBSIDIAN FLOATING CARDS ON DARK BASE) */
         .adl-shell.dark aside {
@@ -1335,11 +1333,39 @@ export default function AdLedgerApp() {
           box-shadow: 8px 0 25px rgba(0, 0, 0, 0.6) !important;
           color: #e2e8f0 !important;
         }
-        .adl-shell.dark aside > div > div,
-        .adl-shell.dark aside [class*="rounded-3xl"],
-        .adl-shell.dark aside [class*="rounded-2xl"] {
+        .adl-shell.dark aside .adl-sidebar-card {
           background-color: #111722 !important;
-          border-color: rgba(255, 255, 255, 0.1) !important;
+          border: 1px solid rgba(255, 255, 255, 0.08) !important;
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5) !important;
+        }
+        /* SIDEBAR BUTTONS - FLAT CLEAN ROWS, NEVER CARDS */
+        .adl-shell aside button.adl-nav-inactive {
+          background: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
+        }
+        .adl-shell:not(.dark) aside button.adl-nav-inactive {
+          color: #475569 !important;
+        }
+        .adl-shell:not(.dark) aside button.adl-nav-inactive:hover {
+          background-color: rgba(241, 245, 249, 0.8) !important;
+          color: #0f172a !important;
+        }
+        .adl-shell.dark aside button.adl-nav-inactive:hover {
+          background-color: rgba(30, 41, 59, 0.4) !important;
+          color: #f8fafc !important;
+        }
+        .adl-shell:not(.dark) aside button.adl-nav-active {
+          background-color: #e0eaf6 !important;
+          border: 1px solid rgba(147, 197, 253, 0.6) !important;
+          box-shadow: inset 2px 2px 4px rgba(166, 180, 200, 0.35), inset -2px -2px 4px #ffffff !important;
+          color: #1d4ed8 !important;
+        }
+        .adl-shell.dark aside button.adl-nav-active {
+          background-color: #182235 !important;
+          border: 1px solid rgba(56, 189, 248, 0.35) !important;
+          box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6) !important;
+          color: #38bdf8 !important;
         }
         .adl-shell aside nav {
           scrollbar-width: none;
@@ -1434,10 +1460,10 @@ export default function AdLedgerApp() {
           <div className="space-y-2.5 sm:space-y-3 flex flex-col gap-2.5 sm:gap-3">
             
             {/* PORTION 1: Top Active Agency Switcher Pill */}
-            <div className={`rounded-2xl sm:rounded-3xl p-2 sm:p-3 transition-all border ${
+            <div className={`adl-sidebar-card rounded-2xl sm:rounded-3xl p-2 sm:p-3 transition-all border ${
               theme === 'dark'
                 ? 'bg-[#111722] border-white/10 shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
-                : 'bg-white border-slate-200/90 shadow-[0_4px_18px_rgba(166,180,200,0.35)]'
+                : 'bg-white border-slate-200/90 shadow-[0_4px_18px_rgba(166,180,200,0.25)]'
             }`}>
               <div className="flex items-center gap-2.5">
                 {workspaceLogo ? (
@@ -1486,10 +1512,10 @@ export default function AdLedgerApp() {
             </div>
 
             {/* PORTION 2: Main Navigation Menu Card */}
-            <div className={`rounded-2xl sm:rounded-3xl p-1.5 sm:p-2.5 space-y-1 sm:space-y-1.5 border ${
+            <div className={`adl-sidebar-card rounded-2xl sm:rounded-3xl p-1.5 sm:p-2.5 space-y-1 sm:space-y-1.5 border ${
               theme === 'dark'
                 ? 'bg-[#111722] border-white/10 shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
-                : 'bg-white border-slate-200/90 shadow-[0_4px_18px_rgba(166,180,200,0.35)]'
+                : 'bg-white border-slate-200/90 shadow-[0_4px_18px_rgba(166,180,200,0.25)]'
             }`}>
               <NavItem theme={theme} icon={<LayoutDashboard />} label="Dashboard" isActive={currentView === 'dashboard'} onClick={() => { setCurrentView('dashboard'); setIsMobileMenuOpen(false); }} />
               <NavItem theme={theme} icon={<Users />} label="Clients" isActive={currentView === 'clients'} onClick={() => { setCurrentView('clients'); setIsMobileMenuOpen(false); }} />
@@ -1500,10 +1526,10 @@ export default function AdLedgerApp() {
             </div>
 
             {/* PORTION 3: Workspace Section Card */}
-            <div className={`rounded-2xl sm:rounded-3xl p-1.5 sm:p-2.5 space-y-1 sm:space-y-1.5 border ${
+            <div className={`adl-sidebar-card rounded-2xl sm:rounded-3xl p-1.5 sm:p-2.5 space-y-1 sm:space-y-1.5 border ${
               theme === 'dark'
                 ? 'bg-[#111722] border-white/10 shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
-                : 'bg-white border-slate-200/90 shadow-[0_4px_18px_rgba(166,180,200,0.35)]'
+                : 'bg-white border-slate-200/90 shadow-[0_4px_18px_rgba(166,180,200,0.25)]'
             }`}>
               <p className={`px-3 pt-1 text-[9.5px] font-black uppercase tracking-wider ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>WORKSPACE</p>
               <NavItem theme={theme} icon={<Crown />} label="Subscriptions" isActive={currentView === 'subscription' || currentView === 'billing' || currentView === 'plans'} onClick={() => { setCurrentView('subscription'); setIsMobileMenuOpen(false); }} />
@@ -1516,10 +1542,10 @@ export default function AdLedgerApp() {
           </div>
 
           {/* PORTION 4: Bottom Platform Brand Card */}
-          <div className={`rounded-2xl sm:rounded-3xl p-2 sm:p-3 shrink-0 mt-1 sm:mt-2 border ${
+          <div className={`adl-sidebar-card rounded-2xl sm:rounded-3xl p-2 sm:p-3 shrink-0 mt-1 sm:mt-2 border ${
             theme === 'dark'
               ? 'bg-[#111722] border-white/10 shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
-              : 'bg-white border-slate-200/90 shadow-[0_4px_18px_rgba(166,180,200,0.35)]'
+              : 'bg-white border-slate-200/90 shadow-[0_4px_18px_rgba(166,180,200,0.25)]'
           }`}>
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-2xl overflow-hidden shrink-0 flex items-center justify-center border ${
@@ -14685,11 +14711,11 @@ function NavItem({ icon, label, isActive, onClick, theme = 'light' }) {
       className={`w-full flex items-center justify-between p-2 rounded-2xl cursor-pointer select-none group outline-none focus:outline-none transition-colors duration-100 border-0 ${
         isDark
           ? (isActive
-              ? 'bg-[#182235] text-sky-400 font-black shadow-[inset_0_0_0_1px_rgba(56,189,248,0.35),inset_0_2px_4px_rgba(0,0,0,0.6)]'
-              : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/40 shadow-none')
+              ? 'adl-nav-active bg-[#182235] text-sky-400 font-black shadow-[inset_0_0_0_1px_rgba(56,189,248,0.35),inset_0_2px_4px_rgba(0,0,0,0.6)]'
+              : 'adl-nav-inactive text-slate-400 hover:text-slate-100 hover:bg-slate-800/40 shadow-none bg-transparent')
           : (isActive
-              ? 'bg-[#e0eaf6] text-blue-700 font-black shadow-[inset_3px_3px_6px_rgba(166,180,200,0.65),inset_-3px_-3px_6px_#ffffff] border border-white/80'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 shadow-none')
+              ? 'adl-nav-active bg-[#e0eaf6] text-blue-700 font-black shadow-[inset_2px_2px_4px_rgba(166,180,200,0.35),inset_-2px_-2px_4px_#ffffff] border border-blue-200/60'
+              : 'adl-nav-inactive text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 shadow-none bg-transparent')
       }`}
     >
       <div className="flex items-center gap-3 min-w-0">
@@ -14701,7 +14727,7 @@ function NavItem({ icon, label, isActive, onClick, theme = 'light' }) {
                   : 'bg-[#0c1017] text-slate-400 group-hover:text-sky-400 shadow-none')
               : (isActive
                   ? 'bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-[2px_3px_8px_rgba(37,99,235,0.4)]'
-                  : 'bg-[#ebf0f7] border border-white shadow-[2px_2px_5px_rgba(166,180,200,0.4),-2px_-2px_5px_#ffffff] text-slate-500 group-hover:text-blue-600')
+                  : 'bg-[#f1f5f9] text-slate-500 group-hover:text-blue-600 shadow-none')
           }`}
         >
           {React.cloneElement(icon, { size: 16, className: isActive ? 'stroke-[2.5]' : 'stroke-[2]' })}

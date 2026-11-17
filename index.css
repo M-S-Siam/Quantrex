@@ -343,7 +343,7 @@ body {
     gap: 12px !important;
   }
 
-  .adl-shell aside [class*="rounded-3xl"] {
+  .adl-shell aside .adl-sidebar-card {
     width: 100% !important;
     max-width: 100% !important;
     max-height: none !important;
@@ -580,11 +580,10 @@ body.dark {
   color: #f1f5f9 !important;
 }
 
-.adl-shell.dark aside>div>div,
-.adl-shell.dark aside [class*="rounded-3xl"],
-.adl-shell.dark aside [class*="rounded-2xl"] {
+.adl-shell.dark aside .adl-sidebar-card {
   background-color: #111722 !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5) !important;
 }
 
 /* SIDEBAR (CLEAN WHITE FLOATING CARDS IN LIGHT MODE) */
@@ -593,12 +592,33 @@ body.dark {
   color: #0f172a !important;
 }
 
-.adl-shell:not(.dark) aside>div>div,
-.adl-shell:not(.dark) aside [class*="rounded-3xl"],
-.adl-shell:not(.dark) aside [class*="rounded-2xl"] {
+.adl-shell:not(.dark) aside .adl-sidebar-card {
   background-color: #ffffff !important;
-  border-color: rgba(226, 232, 240, 0.9) !important;
-  box-shadow: 0 4px 18px rgba(166, 180, 200, 0.35) !important;
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+  box-shadow: 0 4px 18px rgba(166, 180, 200, 0.25) !important;
+}
+
+/* SIDEBAR BUTTONS - FLAT CLEAN ROWS, NEVER CARDS */
+.adl-shell aside button.adl-nav-inactive {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.adl-shell:not(.dark) aside button.adl-nav-inactive {
+  color: #475569 !important;
+}
+
+.adl-shell:not(.dark) aside button.adl-nav-inactive:hover {
+  background-color: rgba(241, 245, 249, 0.8) !important;
+  color: #0f172a !important;
+}
+
+.adl-shell:not(.dark) aside button.adl-nav-active {
+  background-color: #e0eaf6 !important;
+  border: 1px solid rgba(147, 197, 253, 0.6) !important;
+  box-shadow: inset 2px 2px 4px rgba(166, 180, 200, 0.35), inset -2px -2px 4px #ffffff !important;
+  color: #1d4ed8 !important;
 }
 
 .adl-shell.dark main,
@@ -612,8 +632,7 @@ body.dark {
 .adl-shell.dark [class*="bg-[#ebf0f7]"],
 .adl-shell.dark .bg-white,
 .adl-shell.dark [class*="bg-white"],
-.adl-shell.dark aside>div>div,
-.adl-shell.dark aside [class*="rounded-3xl"] {
+.adl-shell.dark aside .adl-sidebar-card {
   background-color: #111722 !important;
   border-color: rgba(255, 255, 255, 0.08) !important;
 }
