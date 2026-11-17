@@ -2,7 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body, #root {
+html,
+body,
+#root {
   min-height: 100%;
   margin: 0;
 }
@@ -18,11 +20,15 @@ body {
 
 /* Desktop is intentionally untouched. All responsive changes are phone-only. */
 @media (max-width: 767px) {
-  html, body, #root {
+
+  html,
+  body,
+  #root {
     width: 100%;
     max-width: 100%;
     overflow-x: hidden;
   }
+
   body {
     min-width: 0;
   }
@@ -37,8 +43,17 @@ body {
   }
 
   /* Ensure all text, paragraphs, headings and spans wrap cleanly within boxes */
-  .adl-shell h1, .adl-shell h2, .adl-shell h3, .adl-shell h4, .adl-shell h5, .adl-shell h6,
-  .adl-shell p, .adl-shell span, .adl-shell div, .adl-shell label, .adl-shell button {
+  .adl-shell h1,
+  .adl-shell h2,
+  .adl-shell h3,
+  .adl-shell h4,
+  .adl-shell h5,
+  .adl-shell h6,
+  .adl-shell p,
+  .adl-shell span,
+  .adl-shell div,
+  .adl-shell label,
+  .adl-shell button {
     overflow-wrap: break-word;
     word-wrap: break-word;
   }
@@ -52,9 +67,20 @@ body {
     position: relative !important;
     z-index: 40 !important;
   }
-  .adl-shell header > div { min-width: 0; }
-  .adl-shell header > div:last-child { margin-left: auto; gap: 8px !important; }
-  .adl-shell header > div:last-child > button { flex-shrink: 0; }
+
+  .adl-shell header>div {
+    min-width: 0;
+  }
+
+  .adl-shell header>div:last-child {
+    margin-left: auto;
+    gap: 8px !important;
+  }
+
+  .adl-shell header>div:last-child>button {
+    flex-shrink: 0;
+  }
+
   .adl-shell header input,
   .adl-shell header [placeholder*="Search"],
   .adl-shell header [class*="search"] {
@@ -67,22 +93,25 @@ body {
     top: 0 !important;
     z-index: 10 !important;
   }
+
   .adl-shell:not(.dark) table thead,
   .adl-shell:not(.dark) table thead tr,
   .adl-shell:not(.dark) table thead th {
     background-color: #ebf0f7 !important;
   }
+
   .adl-shell.dark table thead,
   .adl-shell.dark table thead tr,
   .adl-shell.dark table thead th {
     background-color: #0d121b !important;
   }
+
   .adl-shell .overflow-y-auto:has(> table) {
     overflow-x: auto !important;
   }
 
   /* Main scrollable body */
-  .adl-shell main > div.flex-1.overflow-auto {
+  .adl-shell main>div.flex-1.overflow-auto {
     padding: 12px 10px 32px !important;
     width: 100% !important;
     min-width: 0 !important;
@@ -94,36 +123,40 @@ body {
     line-height: 1.2 !important;
     margin-bottom: 4px !important;
   }
+
   .adl-shell h2 {
     line-height: 1.25 !important;
   }
 
   /* Dashboard View Spacing */
-  .adl-shell main > div.flex-1.overflow-auto > div:has(> div.grid[class*="xl:grid-cols-4"]) {
+  .adl-shell main>div.flex-1.overflow-auto>div:has(> div.grid[class*="xl:grid-cols-4"]) {
     gap: 12px !important;
   }
 
   /* Hero strip on mobile */
-  .adl-shell main > div.flex-1.overflow-auto > div:has(> div.grid[class*="xl:grid-cols-4"]) > div:first-child {
+  .adl-shell main>div.flex-1.overflow-auto>div:has(> div.grid[class*="xl:grid-cols-4"])>div:first-child {
     padding: 14px 13px !important;
     border-radius: 18px !important;
     height: auto !important;
   }
-  .adl-shell main > div.flex-1.overflow-auto > div:has(> div.grid[class*="xl:grid-cols-4"]) > div:first-child h1 {
+
+  .adl-shell main>div.flex-1.overflow-auto>div:has(> div.grid[class*="xl:grid-cols-4"])>div:first-child h1 {
     font-size: 1.35rem !important;
   }
-  .adl-shell main > div.flex-1.overflow-auto > div:has(> div.grid[class*="xl:grid-cols-4"]) > div:first-child p {
+
+  .adl-shell main>div.flex-1.overflow-auto>div:has(> div.grid[class*="xl:grid-cols-4"])>div:first-child p {
     font-size: .80rem !important;
     line-height: 1.35 !important;
   }
 
   /* Master Financial Health Matrix (4 KPI Cards) - Eliminates fixed height so text NEVER overflows */
-  .adl-shell main > div.flex-1.overflow-auto > div:has(> div.grid[class*="xl:grid-cols-4"]) > div:nth-child(2) {
+  .adl-shell main>div.flex-1.overflow-auto>div:has(> div.grid[class*="xl:grid-cols-4"])>div:nth-child(2) {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 10px !important;
   }
-  .adl-shell main > div.flex-1.overflow-auto > div:has(> div.grid[class*="xl:grid-cols-4"]) > div:nth-child(2) > div {
+
+  .adl-shell main>div.flex-1.overflow-auto>div:has(> div.grid[class*="xl:grid-cols-4"])>div:nth-child(2)>div {
     min-width: 0 !important;
     min-height: auto !important;
     height: auto !important;
@@ -135,28 +168,33 @@ body {
     justify-content: space-between !important;
     overflow: hidden !important;
   }
-  .adl-shell main > div.flex-1.overflow-auto > div:has(> div.grid[class*="xl:grid-cols-4"]) > div:nth-child(2) > div h2,
-  .adl-shell main > div.flex-1.overflow-auto > div:has(> div.grid[class*="xl:grid-cols-4"]) > div:nth-child(2) > div h3 {
+
+  .adl-shell main>div.flex-1.overflow-auto>div:has(> div.grid[class*="xl:grid-cols-4"])>div:nth-child(2)>div h2,
+  .adl-shell main>div.flex-1.overflow-auto>div:has(> div.grid[class*="xl:grid-cols-4"])>div:nth-child(2)>div h3 {
     font-size: 1.05rem !important;
     line-height: 1.15 !important;
   }
-  .adl-shell main > div.flex-1.overflow-auto > div:has(> div.grid[class*="xl:grid-cols-4"]) > div:nth-child(2) > div p {
+
+  .adl-shell main>div.flex-1.overflow-auto>div:has(> div.grid[class*="xl:grid-cols-4"])>div:nth-child(2)>div p {
     font-size: .75rem !important;
     line-height: 1.3 !important;
   }
+
   /* Large currency numbers scale smoothly to fit cards without clipping */
-  .adl-shell main > div.flex-1.overflow-auto > div:has(> div.grid[class*="xl:grid-cols-4"]) > div:nth-child(2) > div [class*="text-2xl"],
-  .adl-shell main > div.flex-1.overflow-auto > div:has(> div.grid[class*="xl:grid-cols-4"]) > div:nth-child(2) > div [class*="text-3xl"] {
+  .adl-shell main>div.flex-1.overflow-auto>div:has(> div.grid[class*="xl:grid-cols-4"])>div:nth-child(2)>div [class*="text-2xl"],
+  .adl-shell main>div.flex-1.overflow-auto>div:has(> div.grid[class*="xl:grid-cols-4"])>div:nth-child(2)>div [class*="text-3xl"] {
     font-size: clamp(1.15rem, 4.2vw, 1.65rem) !important;
     line-height: 1.2 !important;
     word-break: break-word !important;
   }
+
   /* Subgrid breakdown inside cards (Total BDT Cost & Net BDT) */
-  .adl-shell main > div.flex-1.overflow-auto > div:has(> div.grid[class*="xl:grid-cols-4"]) > div:nth-child(2) > div .grid.grid-cols-2 {
+  .adl-shell main>div.flex-1.overflow-auto>div:has(> div.grid[class*="xl:grid-cols-4"])>div:nth-child(2)>div .grid.grid-cols-2 {
     gap: 6px !important;
     padding-top: 6px !important;
   }
-  .adl-shell main > div.flex-1.overflow-auto > div:has(> div.grid[class*="xl:grid-cols-4"]) > div:nth-child(2) > div .grid.grid-cols-2 span {
+
+  .adl-shell main>div.flex-1.overflow-auto>div:has(> div.grid[class*="xl:grid-cols-4"])>div:nth-child(2)>div .grid.grid-cols-2 span {
     font-size: 10px !important;
     line-height: 1.25 !important;
     word-break: break-word !important;
@@ -168,21 +206,24 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 9px !important;
   }
-  .adl-shell .grid[class*="grid-cols-4"] > *,
-  .adl-shell .grid[class*="grid-cols-5"] > * {
+
+  .adl-shell .grid[class*="grid-cols-4"]>*,
+  .adl-shell .grid[class*="grid-cols-5"]>* {
     min-width: 0 !important;
     height: auto !important;
     min-height: auto !important;
   }
-  .adl-shell .grid[class*="grid-cols-4"] > .bg-white,
-  .adl-shell .grid[class*="grid-cols-5"] > .bg-white,
-  .adl-shell .grid[class*="grid-cols-4"] > [class*="bg-[#ebf0f7]"],
-  .adl-shell .grid[class*="grid-cols-5"] > [class*="bg-[#ebf0f7]"] {
+
+  .adl-shell .grid[class*="grid-cols-4"]>.bg-white,
+  .adl-shell .grid[class*="grid-cols-5"]>.bg-white,
+  .adl-shell .grid[class*="grid-cols-4"]>[class*="bg-[#ebf0f7]"],
+  .adl-shell .grid[class*="grid-cols-5"]>[class*="bg-[#ebf0f7]"] {
     padding: 12px 10px !important;
     height: auto !important;
     min-height: auto !important;
     border-radius: 16px !important;
   }
+
   .adl-shell .grid[class*="grid-cols-4"] h2,
   .adl-shell .grid[class*="grid-cols-5"] h2 {
     font-size: 1.12rem !important;
@@ -194,14 +235,17 @@ body {
     grid-template-columns: 1fr !important;
     gap: 12px !important;
   }
-  .adl-shell .grid[class*="md:grid-cols-2"][class*="xl:grid-cols-3"] > * {
+
+  .adl-shell .grid[class*="md:grid-cols-2"][class*="xl:grid-cols-3"]>* {
     min-width: 0 !important;
     height: auto !important;
   }
+
   .adl-shell .grid[class*="xl:grid-cols-3"] {
     grid-template-columns: 1fr !important;
     gap: 12px !important;
   }
+
   .adl-shell [class*="xl:col-span-2"] {
     grid-column: auto !important;
   }
@@ -230,14 +274,21 @@ body {
     scrollbar-width: none;
     flex-wrap: nowrap !important;
   }
+
   .adl-shell [class*="bg-slate-200"]::-webkit-scrollbar,
   .adl-shell [class*="bg-slate-100"]::-webkit-scrollbar {
     display: none !important;
   }
 
   /* Charts scale comfortably without overflowing cards */
-  .adl-shell .h-72 { height: 210px !important; }
-  .adl-shell .h-64 { height: 190px !important; }
+  .adl-shell .h-72 {
+    height: 210px !important;
+  }
+
+  .adl-shell .h-64 {
+    height: 190px !important;
+  }
+
   .adl-shell .recharts-responsive-container,
   .adl-shell .recharts-wrapper {
     max-width: 100% !important;
@@ -252,6 +303,7 @@ body {
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
   }
+
   .adl-shell table {
     min-width: 580px;
   }
@@ -266,7 +318,7 @@ body {
 
   /* Modals: fit comfortable mobile viewport */
   .adl-shell [role="dialog"],
-  .adl-shell .fixed.inset-0 > div {
+  .adl-shell .fixed.inset-0>div {
     width: calc(100vw - 18px) !important;
     max-width: calc(100vw - 18px) !important;
     max-height: calc(100dvh - 20px) !important;
@@ -284,20 +336,24 @@ body {
     flex-direction: column !important;
     gap: 12px !important;
   }
-  .adl-shell aside > div:first-child {
+
+  .adl-shell aside>div:first-child {
     display: flex !important;
     flex-direction: column !important;
     gap: 12px !important;
   }
+
   .adl-shell aside [class*="rounded-3xl"] {
     width: 100% !important;
     max-width: 100% !important;
     max-height: none !important;
     overflow: visible !important;
   }
+
   .adl-shell .border-b:last-child {
     border-bottom-width: 0;
   }
+
   .adl-shell button {
     max-width: 100%;
   }
@@ -312,13 +368,15 @@ body {
 
 /* Specific optimizations for portrait smartphones (under 520px) */
 @media (max-width: 520px) {
+
   /* Maintain the 2-column grid layout so the app structure is 100% preserved */
-  .adl-shell main > div.flex-1.overflow-auto > div:has(> div.grid[class*="xl:grid-cols-4"]) > div:nth-child(2) {
+  .adl-shell main>div.flex-1.overflow-auto>div:has(> div.grid[class*="xl:grid-cols-4"])>div:nth-child(2) {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 8px !important;
   }
-  .adl-shell main > div.flex-1.overflow-auto > div:has(> div.grid[class*="xl:grid-cols-4"]) > div:nth-child(2) > div [class*="text-2xl"],
-  .adl-shell main > div.flex-1.overflow-auto > div:has(> div.grid[class*="xl:grid-cols-4"]) > div:nth-child(2) > div [class*="text-3xl"] {
+
+  .adl-shell main>div.flex-1.overflow-auto>div:has(> div.grid[class*="xl:grid-cols-4"])>div:nth-child(2)>div [class*="text-2xl"],
+  .adl-shell main>div.flex-1.overflow-auto>div:has(> div.grid[class*="xl:grid-cols-4"])>div:nth-child(2)>div [class*="text-3xl"] {
     font-size: clamp(1.05rem, 3.8vw, 1.35rem) !important;
     line-height: 1.2 !important;
   }
@@ -332,11 +390,12 @@ body {
 
 /* Ultra-compact phone screens (under 380px) */
 @media (max-width: 380px) {
-  .adl-shell main > div.flex-1.overflow-auto {
+  .adl-shell main>div.flex-1.overflow-auto {
     padding-left: 8px !important;
     padding-right: 8px !important;
   }
-  .adl-shell main > div.flex-1.overflow-auto > div:has(> div.grid[class*="xl:grid-cols-4"]) > div:nth-child(2) > div {
+
+  .adl-shell main>div.flex-1.overflow-auto>div:has(> div.grid[class*="xl:grid-cols-4"])>div:nth-child(2)>div {
     padding: 12px 10px !important;
     border-radius: 16px !important;
   }
@@ -344,13 +403,19 @@ body {
 
 /* ---------- AUTH: ONE PASSWORD REVEAL CONTROL ---------- */
 .adl-auth-page input[type="password"]::-ms-reveal,
-.adl-auth-page input[type="password"]::-ms-clear { display: none !important; }
-.adl-auth-page input[type="password"] { -webkit-appearance: none; appearance: none; }
+.adl-auth-page input[type="password"]::-ms-clear {
+  display: none !important;
+}
+
+.adl-auth-page input[type="password"] {
+  -webkit-appearance: none;
+  appearance: none;
+}
 
 /* ---------- AUTH: INPUT ICONS ---------- */
-.adl-auth-page div:has(> input[type="email"]) > svg,
-.adl-auth-page div:has(> input[autocomplete="current-password"]) > svg,
-.adl-auth-page div:has(> input[autocomplete="new-password"]) > svg {
+.adl-auth-page div:has(> input[type="email"])>svg,
+.adl-auth-page div:has(> input[autocomplete="current-password"])>svg,
+.adl-auth-page div:has(> input[autocomplete="new-password"])>svg {
   position: absolute !important;
   left: 13px !important;
   top: 50% !important;
@@ -379,31 +444,112 @@ body {
 
 /* ---------- AUTH: FIT THE CARD AT NORMAL 100% BROWSER ZOOM ---------- */
 @media (min-width: 768px) and (min-height: 650px) {
-  .adl-auth-page { padding: 10px 14px !important; }
-  .adl-auth-page > form { max-height: calc(100dvh - 20px) !important; overflow-y: visible !important; padding: 15px 18px 13px !important; }
-  .adl-auth-page > form > div:first-child { margin-bottom: 11px !important; }
-  .adl-auth-page > form > div:first-child > div:first-child { width: 46px !important; height: 46px !important; border-radius: 13px !important; font-size: 21px !important; }
-  .adl-auth-page > form > div:first-child > div:nth-child(2) { margin-top: 8px !important; font-size: 20px !important; }
-  .adl-auth-page > form > div:first-child > div:nth-child(3) { margin-top: 4px !important; font-size: 10.5px !important; }
-  .adl-auth-page > form > div:nth-child(2) { padding: 12px 13px 12px !important; }
-  .adl-auth-page > form > div:nth-child(2) > div:first-child { margin-bottom: 10px !important; font-size: 15px !important; }
-  .adl-auth-page > form > div:nth-child(2) > div:nth-child(2) { margin-bottom: 11px !important; }
-  .adl-auth-page > form input { padding-top: 10px !important; padding-bottom: 10px !important; font-size: 13px !important; }
-  .adl-auth-page > form label { margin-bottom: 4px !important; font-size: 10.5px !important; }
-  .adl-auth-page > form label[style*="marginTop"] { margin-top: 9px !important; }
-  .adl-auth-page > form button[type="submit"] { min-height: 38px !important; }
+  .adl-auth-page {
+    padding: 10px 14px !important;
+  }
+
+  .adl-auth-page>form {
+    max-height: calc(100dvh - 20px) !important;
+    overflow-y: visible !important;
+    padding: 15px 18px 13px !important;
+  }
+
+  .adl-auth-page>form>div:first-child {
+    margin-bottom: 11px !important;
+  }
+
+  .adl-auth-page>form>div:first-child>div:first-child {
+    width: 46px !important;
+    height: 46px !important;
+    border-radius: 13px !important;
+    font-size: 21px !important;
+  }
+
+  .adl-auth-page>form>div:first-child>div:nth-child(2) {
+    margin-top: 8px !important;
+    font-size: 20px !important;
+  }
+
+  .adl-auth-page>form>div:first-child>div:nth-child(3) {
+    margin-top: 4px !important;
+    font-size: 10.5px !important;
+  }
+
+  .adl-auth-page>form>div:nth-child(2) {
+    padding: 12px 13px 12px !important;
+  }
+
+  .adl-auth-page>form>div:nth-child(2)>div:first-child {
+    margin-bottom: 10px !important;
+    font-size: 15px !important;
+  }
+
+  .adl-auth-page>form>div:nth-child(2)>div:nth-child(2) {
+    margin-bottom: 11px !important;
+  }
+
+  .adl-auth-page>form input {
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+    font-size: 13px !important;
+  }
+
+  .adl-auth-page>form label {
+    margin-bottom: 4px !important;
+    font-size: 10.5px !important;
+  }
+
+  .adl-auth-page>form label[style*="marginTop"] {
+    margin-top: 9px !important;
+  }
+
+  .adl-auth-page>form button[type="submit"] {
+    min-height: 38px !important;
+  }
 }
 
 @media (min-width: 768px) and (max-height: 720px) {
-  .adl-auth-page > form { padding-top: 10px !important; padding-bottom: 9px !important; }
-  .adl-auth-page > form > div:first-child { margin-bottom: 7px !important; }
-  .adl-auth-page > form > div:first-child > div:first-child { width: 40px !important; height: 40px !important; font-size: 18px !important; }
-  .adl-auth-page > form > div:first-child > div:nth-child(2) { margin-top: 6px !important; font-size: 18px !important; }
-  .adl-auth-page > form > div:first-child > div:nth-child(3) { margin-top: 2px !important; font-size: 10px !important; }
-  .adl-auth-page > form > div:nth-child(2) { padding: 10px 12px !important; }
-  .adl-auth-page > form > div:nth-child(2) > div:first-child { margin-bottom: 7px !important; }
-  .adl-auth-page > form > div:nth-child(2) > div:nth-child(2) { margin-bottom: 8px !important; }
-  .adl-auth-page > form input { padding-top: 8px !important; padding-bottom: 8px !important; }
+  .adl-auth-page>form {
+    padding-top: 10px !important;
+    padding-bottom: 9px !important;
+  }
+
+  .adl-auth-page>form>div:first-child {
+    margin-bottom: 7px !important;
+  }
+
+  .adl-auth-page>form>div:first-child>div:first-child {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 18px !important;
+  }
+
+  .adl-auth-page>form>div:first-child>div:nth-child(2) {
+    margin-top: 6px !important;
+    font-size: 18px !important;
+  }
+
+  .adl-auth-page>form>div:first-child>div:nth-child(3) {
+    margin-top: 2px !important;
+    font-size: 10px !important;
+  }
+
+  .adl-auth-page>form>div:nth-child(2) {
+    padding: 10px 12px !important;
+  }
+
+  .adl-auth-page>form>div:nth-child(2)>div:first-child {
+    margin-bottom: 7px !important;
+  }
+
+  .adl-auth-page>form>div:nth-child(2)>div:nth-child(2) {
+    margin-bottom: 8px !important;
+  }
+
+  .adl-auth-page>form input {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+  }
 }
 
 /* ---------- UTILITY: HIDE SCROLLBAR ---------- */
@@ -412,6 +558,7 @@ body {
   height: 0 !important;
   width: 0 !important;
 }
+
 .no-scrollbar {
   -ms-overflow-style: none !important;
   scrollbar-width: none !important;
@@ -427,16 +574,31 @@ body.dark {
   color: #f1f5f9 !important;
 }
 
-/* SIDEBAR IS PERMANENTLY OBSIDIAN DARK IN BOTH LIGHT & DARK MODES */
-.adl-shell aside {
+/* SIDEBAR (OBSIDIAN DARK IN DARK MODE) */
+.adl-shell.dark aside {
   background-color: #0a0d14 !important;
   color: #f1f5f9 !important;
 }
-.adl-shell aside > div > div,
-.adl-shell aside [class*="rounded-3xl"],
-.adl-shell aside [class*="rounded-2xl"] {
+
+.adl-shell.dark aside>div>div,
+.adl-shell.dark aside [class*="rounded-3xl"],
+.adl-shell.dark aside [class*="rounded-2xl"] {
   background-color: #111722 !important;
   border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* SIDEBAR (CLEAN WHITE FLOATING CARDS IN LIGHT MODE) */
+.adl-shell:not(.dark) aside {
+  background-color: #ebf0f7 !important;
+  color: #0f172a !important;
+}
+
+.adl-shell:not(.dark) aside>div>div,
+.adl-shell:not(.dark) aside [class*="rounded-3xl"],
+.adl-shell:not(.dark) aside [class*="rounded-2xl"] {
+  background-color: #ffffff !important;
+  border-color: rgba(226, 232, 240, 0.9) !important;
+  box-shadow: 0 4px 18px rgba(166, 180, 200, 0.35) !important;
 }
 
 .adl-shell.dark main,
@@ -450,7 +612,7 @@ body.dark {
 .adl-shell.dark [class*="bg-[#ebf0f7]"],
 .adl-shell.dark .bg-white,
 .adl-shell.dark [class*="bg-white"],
-.adl-shell.dark aside > div > div,
+.adl-shell.dark aside>div>div,
 .adl-shell.dark aside [class*="rounded-3xl"] {
   background-color: #111722 !important;
   border-color: rgba(255, 255, 255, 0.08) !important;
@@ -472,9 +634,9 @@ body.dark {
 /* ACTIVE TAB BUTTONS ACROSS ALL VIEWS (ONLY the clicked/active button glows) */
 .adl-shell.dark [class*="bg-slate-200"] button.bg-white,
 .adl-shell.dark [class*="bg-slate-100"] button.bg-white,
-.adl-shell.dark [class*="rounded-xl"] > button.bg-white,
-.adl-shell.dark [class*="rounded-lg"] > button.bg-white,
-.adl-shell.dark [class*="rounded-md"] > button.bg-white {
+.adl-shell.dark [class*="rounded-xl"]>button.bg-white,
+.adl-shell.dark [class*="rounded-lg"]>button.bg-white,
+.adl-shell.dark [class*="rounded-md"]>button.bg-white {
   background-color: #182235 !important;
   color: #38bdf8 !important;
   border: 1px solid rgba(56, 189, 248, 0.4) !important;
@@ -484,9 +646,9 @@ body.dark {
 /* INACTIVE TAB BUTTONS (NO BORDER, NO GLOW, CLEAN TEXT - 100% MATCH INTEGRATION) */
 .adl-shell.dark [class*="bg-slate-200"] button:not(.bg-white),
 .adl-shell.dark [class*="bg-slate-100"] button:not(.bg-white),
-.adl-shell.dark [class*="rounded-xl"] > button:not(.bg-white),
-.adl-shell.dark [class*="rounded-lg"] > button:not(.bg-white),
-.adl-shell.dark [class*="rounded-md"] > button:not(.bg-white) {
+.adl-shell.dark [class*="rounded-xl"]>button:not(.bg-white),
+.adl-shell.dark [class*="rounded-lg"]>button:not(.bg-white),
+.adl-shell.dark [class*="rounded-md"]>button:not(.bg-white) {
   background-color: transparent !important;
   border: 1px solid transparent !important;
   box-shadow: none !important;
@@ -495,9 +657,9 @@ body.dark {
 
 .adl-shell.dark [class*="bg-slate-200"] button:not(.bg-white):hover,
 .adl-shell.dark [class*="bg-slate-100"] button:not(.bg-white):hover,
-.adl-shell.dark [class*="rounded-xl"] > button:not(.bg-white):hover,
-.adl-shell.dark [class*="rounded-lg"] > button:not(.bg-white):hover,
-.adl-shell.dark [class*="rounded-md"] > button:not(.bg-white):hover {
+.adl-shell.dark [class*="rounded-xl"]>button:not(.bg-white):hover,
+.adl-shell.dark [class*="rounded-lg"]>button:not(.bg-white):hover,
+.adl-shell.dark [class*="rounded-md"]>button:not(.bg-white):hover {
   color: #f8fafc !important;
   background-color: rgba(255, 255, 255, 0.05) !important;
   border: 1px solid transparent !important;
@@ -656,19 +818,23 @@ body.dark {
 .adl-shell.dark [class*="border-emerald-300"] {
   border-color: rgba(16, 185, 129, 0.3) !important;
 }
+
 .adl-shell.dark [class*="border-purple-200"],
 .adl-shell.dark [class*="border-purple-300"] {
   border-color: rgba(168, 85, 247, 0.3) !important;
 }
+
 .adl-shell.dark [class*="border-sky-200"],
 .adl-shell.dark [class*="border-sky-300"],
 .adl-shell.dark [class*="border-blue-200"],
 .adl-shell.dark [class*="border-blue-300"] {
   border-color: rgba(56, 189, 248, 0.3) !important;
 }
+
 .adl-shell.dark [class*="border-rose-200"] {
   border-color: rgba(244, 63, 94, 0.3) !important;
 }
+
 .adl-shell.dark [class*="border-amber-200"],
 .adl-shell.dark [class*="border-amber-300"] {
   border-color: rgba(245, 158, 11, 0.3) !important;
@@ -730,7 +896,7 @@ body.dark {
   border-color: rgba(255, 255, 255, 0.08) !important;
 }
 
-.adl-shell.dark [class*="divide-slate-200"] > * + * {
+.adl-shell.dark [class*="divide-slate-200"]>*+* {
   border-color: rgba(255, 255, 255, 0.08) !important;
 }
 
@@ -814,6 +980,7 @@ body.dark .fixed button[class*="bg-white"],
   border-color: #1e293b !important;
   color: #cbd5e1 !important;
 }
+
 html.dark .fixed button[class*="bg-white"]:hover,
 body.dark .fixed button[class*="bg-white"]:hover,
 .dark .fixed button[class*="bg-white"]:hover {
@@ -921,11 +1088,13 @@ body.dark .adl-plan-lifetime:hover {
   border-color: rgba(2, 132, 199, 0.6) !important;
   box-shadow: 0 12px 30px rgba(2, 132, 199, 0.25) !important;
 }
+
 .adl-plan-pro:hover {
   transform: translateY(-5px) !important;
   border-color: rgba(124, 58, 237, 0.6) !important;
   box-shadow: 0 12px 30px rgba(124, 58, 237, 0.25) !important;
 }
+
 .adl-plan-lifetime:hover {
   transform: translateY(-5px) !important;
   border-color: rgba(5, 150, 105, 0.6) !important;
@@ -1022,22 +1191,29 @@ body.dark .adl-plan-btn-lifetime,
    ========================================================================= */
 .adl-shell.dark [class*="text-amber-950"],
 .adl-shell.dark [class*="text-amber-900"] {
-  color: #fde68a !important; /* bright, warm, highly legible amber-200 */
+  color: #fde68a !important;
+  /* bright, warm, highly legible amber-200 */
 }
+
 .adl-shell.dark [class*="text-sky-950"],
 .adl-shell.dark [class*="text-sky-900"],
 .adl-shell.dark [class*="text-sky-800"] {
-  color: #7dd3fc !important; /* bright, readable sky-300 */
+  color: #7dd3fc !important;
+  /* bright, readable sky-300 */
 }
+
 .adl-shell.dark [class*="text-emerald-950"],
 .adl-shell.dark [class*="text-emerald-900"],
 .adl-shell.dark [class*="text-emerald-800"],
 .adl-shell.dark [class*="text-emerald-700"] {
-  color: #6ee7b7 !important; /* bright, readable emerald-300 */
+  color: #6ee7b7 !important;
+  /* bright, readable emerald-300 */
 }
+
 .adl-shell.dark [class*="text-purple-950"],
 .adl-shell.dark [class*="text-purple-900"],
 .adl-shell.dark [class*="text-purple-800"],
 .adl-shell.dark [class*="text-purple-700"] {
-  color: #d8b4fe !important; /* bright, readable purple-300 */
+  color: #d8b4fe !important;
+  /* bright, readable purple-300 */
 }

@@ -1314,16 +1314,30 @@ export default function AdLedgerApp() {
           border-color: rgba(166, 180, 200, 0.35) !important;
           box-shadow: 0 4px 18px rgba(166, 180, 200, 0.2) !important;
         }
-        /* SIDEBAR IS PERMANENTLY SLEEK DARK IN ALL THEMES (LIGHT & DARK) */
-        .adl-shell aside {
+        /* SIDEBAR (LIGHT THEME - CRISP FLOATING WHITE CARDS ON SOFT BASE) */
+        .adl-shell:not(.dark) aside {
+          background: #ebf0f7 !important;
+          border-right: 1px solid rgba(255, 255, 255, 0.9) !important;
+          box-shadow: 8px 0 25px rgba(166, 180, 200, 0.28) !important;
+          color: #0f172a !important;
+        }
+        .adl-shell:not(.dark) aside > div > div,
+        .adl-shell:not(.dark) aside [class*="rounded-3xl"],
+        .adl-shell:not(.dark) aside [class*="rounded-2xl"] {
+          background: #ffffff !important;
+          border: 1px solid rgba(226, 232, 240, 0.9) !important;
+          box-shadow: 0 4px 18px rgba(166, 180, 200, 0.35) !important;
+        }
+        /* SIDEBAR (DARK THEME - OBSIDIAN FLOATING CARDS ON DARK BASE) */
+        .adl-shell.dark aside {
           background: #0a0d14 !important;
           border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
           box-shadow: 8px 0 25px rgba(0, 0, 0, 0.6) !important;
           color: #e2e8f0 !important;
         }
-        .adl-shell aside > div > div,
-        .adl-shell aside [class*="rounded-3xl"],
-        .adl-shell aside [class*="rounded-2xl"] {
+        .adl-shell.dark aside > div > div,
+        .adl-shell.dark aside [class*="rounded-3xl"],
+        .adl-shell.dark aside [class*="rounded-2xl"] {
           background-color: #111722 !important;
           border-color: rgba(255, 255, 255, 0.1) !important;
         }
@@ -1413,36 +1427,44 @@ export default function AdLedgerApp() {
             aria-label="Close menu"
           />
         )}
-        {/* SIDEBAR (EXACT 4 FLOATING NEUMORPHIC PORTIONS - PERMANENT OBSIDIAN DARK) */}
-        <aside className={`fixed inset-y-0 left-0 z-50 w-72 sm:w-64 bg-[#0a0d14] text-slate-200 transition-transform transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:relative flex flex-col p-3 sm:p-3.5 gap-2.5 sm:gap-3 h-full max-h-screen md:h-screen overflow-y-auto no-scrollbar`}>
+        {/* SIDEBAR (EXACT 4 FLOATING CARDS - IDENTICAL SHAPE, SIZE & NO-SCROLL FIT ACROSS BOTH THEMES) */}
+        <aside className={`fixed inset-y-0 left-0 z-50 w-72 sm:w-64 ${theme === 'dark' ? 'bg-[#0a0d14] text-slate-200' : 'bg-[#ebf0f7] text-slate-800'} transition-transform transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:relative flex flex-col p-3 sm:p-3.5 gap-2.5 sm:gap-3 h-full max-h-screen md:h-screen overflow-y-auto no-scrollbar`}>
           
           {/* Top Wrapper for Portion 1, 2, 3 */}
           <div className="space-y-2.5 sm:space-y-3 flex flex-col gap-2.5 sm:gap-3">
             
             {/* PORTION 1: Top Active Agency Switcher Pill */}
-            <div className="rounded-2xl sm:rounded-3xl p-2 sm:p-3 transition-all border bg-[#111722] border-white/10 shadow-[0_8px_20px_rgba(0,0,0,0.5)]">
+            <div className={`rounded-2xl sm:rounded-3xl p-2 sm:p-3 transition-all border ${
+              theme === 'dark'
+                ? 'bg-[#111722] border-white/10 shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
+                : 'bg-white border-slate-200/90 shadow-[0_4px_18px_rgba(166,180,200,0.35)]'
+            }`}>
               <div className="flex items-center gap-2.5">
                 {workspaceLogo ? (
                   <img
                     src={workspaceLogo}
                     alt="Workspace logo"
-                    className="w-9 h-9 rounded-2xl object-cover ring-1 ring-white/10 shrink-0 bg-[#091422] shadow-xs"
+                    className="w-9 h-9 rounded-2xl object-cover ring-1 ring-black/5 shrink-0 bg-white shadow-xs"
                   />
                 ) : (
-                  <div className="w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 border bg-[#091422] border-sky-500/30 text-sky-400 shadow-none">
-                    <Building size={16} className="text-sky-400" />
+                  <div className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 border ${
+                    theme === 'dark'
+                      ? 'bg-[#091422] border-sky-500/30 text-sky-400 shadow-none'
+                      : 'bg-[#ebf0f7] border-white shadow-[inset_2px_2px_4px_rgba(166,180,200,0.4),inset_-2px_-2px_4px_#ffffff] text-blue-600'
+                  }`}>
+                    <Building size={16} className={theme === 'dark' ? 'text-sky-400' : 'text-blue-600'} />
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between">
-                    <span className="block text-xs font-black tracking-tight truncate text-white">
+                    <span className={`block text-xs font-black tracking-tight truncate ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
                       {workspaceSettings.businessName || 'Quantrex'}
                     </span>
                     <ChevronDown size={13} className="text-slate-400 shrink-0 ml-1 opacity-70" />
                   </div>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.8)] shrink-0" />
-                    <span className="text-[9px] font-bold uppercase tracking-wider truncate text-slate-400">
+                    <span className={`text-[9px] font-bold uppercase tracking-wider truncate ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
                       ACTIVE AGENCY
                     </span>
                   </div>
@@ -1451,7 +1473,11 @@ export default function AdLedgerApp() {
                 <button
                   type="button"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="md:hidden p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors ml-1 shrink-0 cursor-pointer"
+                  className={`md:hidden p-1.5 rounded-xl transition-colors ml-1 shrink-0 cursor-pointer ${
+                    theme === 'dark'
+                      ? 'text-slate-400 hover:text-white hover:bg-white/10'
+                      : 'text-slate-400 hover:text-slate-700 hover:bg-black/5'
+                  }`}
                   aria-label="Close sidebar"
                 >
                   <X size={16} />
@@ -1460,31 +1486,47 @@ export default function AdLedgerApp() {
             </div>
 
             {/* PORTION 2: Main Navigation Menu Card */}
-            <div className="rounded-2xl sm:rounded-3xl p-1.5 sm:p-2.5 space-y-1 sm:space-y-1.5 border bg-[#111722] border-white/10 shadow-[0_8px_20px_rgba(0,0,0,0.5)]">
-              <NavItem theme="dark" icon={<LayoutDashboard />} label="Dashboard" isActive={currentView === 'dashboard'} onClick={() => { setCurrentView('dashboard'); setIsMobileMenuOpen(false); }} />
-              <NavItem theme="dark" icon={<Users />} label="Clients" isActive={currentView === 'clients'} onClick={() => { setCurrentView('clients'); setIsMobileMenuOpen(false); }} />
-              <NavItem theme="dark" icon={<Mail />} label="Campaigns" isActive={currentView === 'campaigns'} onClick={() => { setCurrentView('campaigns'); setIsMobileMenuOpen(false); }} />
-              <NavItem theme="dark" icon={<Activity />} label="Transactions" isActive={currentView === 'ledger'} onClick={() => { setCurrentView('ledger'); setIsMobileMenuOpen(false); }} />
-              <NavItem theme="dark" icon={<CreditCard />} label="Cards & USD" isActive={currentView === 'cards'} onClick={() => { setCurrentView('cards'); setIsMobileMenuOpen(false); }} />
-              <NavItem theme="dark" icon={<PieChart />} label="Reports" isActive={currentView === 'reports'} onClick={() => { setCurrentView('reports'); setIsMobileMenuOpen(false); }} />
+            <div className={`rounded-2xl sm:rounded-3xl p-1.5 sm:p-2.5 space-y-1 sm:space-y-1.5 border ${
+              theme === 'dark'
+                ? 'bg-[#111722] border-white/10 shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
+                : 'bg-white border-slate-200/90 shadow-[0_4px_18px_rgba(166,180,200,0.35)]'
+            }`}>
+              <NavItem theme={theme} icon={<LayoutDashboard />} label="Dashboard" isActive={currentView === 'dashboard'} onClick={() => { setCurrentView('dashboard'); setIsMobileMenuOpen(false); }} />
+              <NavItem theme={theme} icon={<Users />} label="Clients" isActive={currentView === 'clients'} onClick={() => { setCurrentView('clients'); setIsMobileMenuOpen(false); }} />
+              <NavItem theme={theme} icon={<Mail />} label="Campaigns" isActive={currentView === 'campaigns'} onClick={() => { setCurrentView('campaigns'); setIsMobileMenuOpen(false); }} />
+              <NavItem theme={theme} icon={<Activity />} label="Transactions" isActive={currentView === 'ledger'} onClick={() => { setCurrentView('ledger'); setIsMobileMenuOpen(false); }} />
+              <NavItem theme={theme} icon={<CreditCard />} label="Cards & USD" isActive={currentView === 'cards'} onClick={() => { setCurrentView('cards'); setIsMobileMenuOpen(false); }} />
+              <NavItem theme={theme} icon={<PieChart />} label="Reports" isActive={currentView === 'reports'} onClick={() => { setCurrentView('reports'); setIsMobileMenuOpen(false); }} />
             </div>
 
             {/* PORTION 3: Workspace Section Card */}
-            <div className="rounded-2xl sm:rounded-3xl p-1.5 sm:p-2.5 space-y-1 sm:space-y-1.5 border bg-[#111722] border-white/10 shadow-[0_8px_20px_rgba(0,0,0,0.5)]">
-              <p className="px-3 pt-1 text-[9.5px] font-black uppercase tracking-wider text-slate-500">WORKSPACE</p>
-              <NavItem theme="dark" icon={<Crown />} label="Subscriptions" isActive={currentView === 'subscription' || currentView === 'billing' || currentView === 'plans'} onClick={() => { setCurrentView('subscription'); setIsMobileMenuOpen(false); }} />
-              <NavItem theme="dark" icon={<PlugZap />} label="Integrations" isActive={currentView === 'integrations'} onClick={() => { setCurrentView('integrations'); setIsMobileMenuOpen(false); }} />
-              <NavItem theme="dark" icon={<UsersRound />} label="Team" isActive={currentView === 'team'} onClick={() => { setCurrentView('team'); setIsMobileMenuOpen(false); }} />
-              <NavItem theme="dark" icon={<BookOpen />} label="User Guide & SOP" isActive={currentView === 'guide'} onClick={() => { setCurrentView('guide'); setIsMobileMenuOpen(false); }} />
-              <NavItem theme="dark" icon={<Settings />} label="Settings" isActive={currentView === 'settings'} onClick={() => { setCurrentView('settings'); setIsMobileMenuOpen(false); }} />
+            <div className={`rounded-2xl sm:rounded-3xl p-1.5 sm:p-2.5 space-y-1 sm:space-y-1.5 border ${
+              theme === 'dark'
+                ? 'bg-[#111722] border-white/10 shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
+                : 'bg-white border-slate-200/90 shadow-[0_4px_18px_rgba(166,180,200,0.35)]'
+            }`}>
+              <p className={`px-3 pt-1 text-[9.5px] font-black uppercase tracking-wider ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>WORKSPACE</p>
+              <NavItem theme={theme} icon={<Crown />} label="Subscriptions" isActive={currentView === 'subscription' || currentView === 'billing' || currentView === 'plans'} onClick={() => { setCurrentView('subscription'); setIsMobileMenuOpen(false); }} />
+              <NavItem theme={theme} icon={<PlugZap />} label="Integrations" isActive={currentView === 'integrations'} onClick={() => { setCurrentView('integrations'); setIsMobileMenuOpen(false); }} />
+              <NavItem theme={theme} icon={<UsersRound />} label="Team" isActive={currentView === 'team'} onClick={() => { setCurrentView('team'); setIsMobileMenuOpen(false); }} />
+              <NavItem theme={theme} icon={<BookOpen />} label="User Guide & SOP" isActive={currentView === 'guide'} onClick={() => { setCurrentView('guide'); setIsMobileMenuOpen(false); }} />
+              <NavItem theme={theme} icon={<Settings />} label="Settings" isActive={currentView === 'settings'} onClick={() => { setCurrentView('settings'); setIsMobileMenuOpen(false); }} />
             </div>
 
           </div>
 
           {/* PORTION 4: Bottom Platform Brand Card */}
-          <div className="rounded-2xl sm:rounded-3xl p-2 sm:p-3 shrink-0 mt-1 sm:mt-2 border bg-[#111722] border-white/10 shadow-[0_8px_20px_rgba(0,0,0,0.5)]">
+          <div className={`rounded-2xl sm:rounded-3xl p-2 sm:p-3 shrink-0 mt-1 sm:mt-2 border ${
+            theme === 'dark'
+              ? 'bg-[#111722] border-white/10 shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
+              : 'bg-white border-slate-200/90 shadow-[0_4px_18px_rgba(166,180,200,0.35)]'
+          }`}>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl overflow-hidden shrink-0 flex items-center justify-center border bg-[#090c12] border-white/10 shadow-none">
+              <div className={`w-10 h-10 rounded-2xl overflow-hidden shrink-0 flex items-center justify-center border ${
+                theme === 'dark'
+                  ? 'bg-[#090c12] border-white/10 shadow-none'
+                  : 'bg-white border-white shadow-[inset_2px_2px_4px_rgba(166,180,200,0.35),inset_-2px_-2px_4px_#ffffff]'
+              }`}>
                 <img
                   src={QUANTREX_LOGO_DATA_URL}
                   alt="Quantrex Platform"
@@ -1497,10 +1539,10 @@ export default function AdLedgerApp() {
               <div className="min-w-0 flex-1 flex flex-col justify-center">
                 <div className="w-fit flex flex-col items-start select-none">
                   <div className="flex items-center font-black text-sm tracking-[0.16em] leading-none font-sans">
-                    <span className="font-black text-violet-400">Q</span>
-                    <span className="font-black tracking-[0.15em] text-white">UANTREX</span>
+                    <span className={`font-black ${theme === 'dark' ? 'text-violet-400' : 'text-violet-600'}`}>Q</span>
+                    <span className={`font-black tracking-[0.15em] ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>UANTREX</span>
                   </div>
-                  <div className="text-[9.5px] font-bold text-sky-400 tracking-wider leading-none mt-1 text-left w-full whitespace-nowrap">
+                  <div className={`text-[9.5px] font-bold tracking-wider leading-none mt-1 text-left w-full whitespace-nowrap ${theme === 'dark' ? 'text-sky-400' : 'text-sky-600'}`}>
                     Ad Spend Intelligence
                   </div>
                 </div>
@@ -14634,36 +14676,50 @@ function Field({ label, children }) {
 }
 
 
-function NavItem({ icon, label, isActive, onClick, theme = 'dark' }) {
+function NavItem({ icon, label, isActive, onClick, theme = 'light' }) {
+  const isDark = theme === 'dark';
   return (
     <button
       type="button"
       onClick={onClick}
       className={`w-full flex items-center justify-between p-2 rounded-2xl cursor-pointer select-none group outline-none focus:outline-none transition-colors duration-100 border-0 ${
-        isActive
-          ? 'bg-[#182235] text-sky-400 font-black shadow-[inset_0_0_0_1px_rgba(56,189,248,0.35),inset_0_2px_4px_rgba(0,0,0,0.6)]'
-          : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/40 shadow-none'
+        isDark
+          ? (isActive
+              ? 'bg-[#182235] text-sky-400 font-black shadow-[inset_0_0_0_1px_rgba(56,189,248,0.35),inset_0_2px_4px_rgba(0,0,0,0.6)]'
+              : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/40 shadow-none')
+          : (isActive
+              ? 'bg-[#e0eaf6] text-blue-700 font-black shadow-[inset_3px_3px_6px_rgba(166,180,200,0.65),inset_-3px_-3px_6px_#ffffff] border border-white/80'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 shadow-none')
       }`}
     >
       <div className="flex items-center gap-3 min-w-0">
         <div
           className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors duration-100 border-0 ${
-            isActive
-              ? 'bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-[0_0_12px_rgba(56,189,248,0.4)]'
-              : 'bg-[#0c1017] text-slate-400 group-hover:text-sky-400 shadow-none'
+            isDark
+              ? (isActive
+                  ? 'bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-[0_0_12px_rgba(56,189,248,0.4)]'
+                  : 'bg-[#0c1017] text-slate-400 group-hover:text-sky-400 shadow-none')
+              : (isActive
+                  ? 'bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-[2px_3px_8px_rgba(37,99,235,0.4)]'
+                  : 'bg-[#ebf0f7] border border-white shadow-[2px_2px_5px_rgba(166,180,200,0.4),-2px_-2px_5px_#ffffff] text-slate-500 group-hover:text-blue-600')
           }`}
         >
           {React.cloneElement(icon, { size: 16, className: isActive ? 'stroke-[2.5]' : 'stroke-[2]' })}
         </div>
         <span className={`truncate text-xs ${
           isActive
-            ? 'font-black text-sky-400'
-            : 'font-bold text-slate-300 group-hover:text-white'
+            ? (isDark ? 'font-black text-sky-400' : 'font-black text-blue-800')
+            : (isDark ? 'font-bold text-slate-300 group-hover:text-white' : 'font-bold text-slate-700 group-hover:text-slate-950')
         }`}>
           {label}
         </span>
       </div>
-      {isActive && <ChevronRight size={15} className="text-sky-400 font-bold shrink-0 mr-1" />}
+      {isActive && (
+        <ChevronRight
+          size={15}
+          className={`${isDark ? 'text-sky-400' : 'text-blue-600'} font-bold shrink-0 mr-1`}
+        />
+      )}
     </button>
   );
 }
