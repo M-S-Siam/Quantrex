@@ -4,7 +4,8 @@ import {
   AlertCircle, CheckCircle2, Search, Filter, Mail, HelpCircle,
   Bell, Sparkles, ShieldCheck, UserPlus, Trash2, ArrowRight,
   ExternalLink, Check, Copy, SlidersHorizontal, BriefcaseBusiness,
-  BarChart3, RefreshCw, X, ChevronRight, Tag, Plus, Percent, Calendar
+  BarChart3, RefreshCw, X, ChevronRight, Tag, Plus, Percent, Calendar,
+  FileSpreadsheet, Download, Database, Clock, Activity, Power, Wrench
 } from 'lucide-react';
 
 export default function AdminConsoleView({
@@ -34,6 +35,115 @@ export default function AdminConsoleView({
   const [newAdminEmail, setNewAdminEmail] = useState('');
   const [newAdminRole, setNewAdminRole] = useState('Co-Admin');
   const [statusMessage, setStatusMessage] = useState('');
+
+  // Maintenance Mode & System Health State
+  const [maintenanceMode, setMaintenanceMode] = useState(() => {
+    try {
+      return localStorage.getItem('quantrex_maintenance_mode') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const [latencyMs, setLatencyMs] = useState(38);
+
+  // Admin Audit Logs State
+  const [auditLogs, setAuditLogs] = useState(() => {
+    try {
+      const saved = localStorage.getItem('quantrex_audit_logs');
+      return saved ? JSON.parse(saved) : [
+        { id: 'l1', timestamp: '2026-11-24 14:15', category: 'COUPON', actor: 'mdshahariar307@gmail.com', detail: 'Created promo coupon LAUNCH50 (50% Off)' },
+        { id: 'l2', timestamp: '2026-11-24 12:40', category: 'BILLING', actor: 'mdshahariar307@gmail.com', detail: 'Verified bKash transaction #8AX921004 for Starter Plan' },
+        { id: 'l3', timestamp: '2026-11-24 09:10', category: 'SECURITY', actor: 'mdshahariar307@gmail.com', detail: 'Portal unlocked with Master Access Code' },
+        { id: 'l4', timestamp: '2026-11-23 18:22', category: 'WORKSPACE', actor: 'mdshahariar307@gmail.com', detail: 'Apex Digital Agency upgraded to Starter Plan' }
+      ];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('quantrex_audit_logs', JSON.stringify(auditLogs));
+    } catch {}
+  }, [auditLogs]);
+
+  const logAuditEvent = (category, detail) => {
+    const newLog = {
+      id: 'l_' + Date.now(),
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      category,
+      actor: currentUserEmail || 'veloxadsphere@gmail.com',
+      detail
+    };
+    setAuditLogs(prev => [newLog, ...prev]);
+  };
+
+  const handleToggleMaintenance = () => {
+    const next = !maintenanceMode;
+    setMaintenanceMode(next);
+    try {
+      localStorage.setItem('quantrex_maintenance_mode', next ? 'true' : 'false');
+    } catch {}
+    logAuditEvent('SYSTEM', next ? 'Maintenance mode ENABLED' : 'Maintenance mode DISABLED');
+    showToast(next ? '⚠️ Maintenance mode is now active!' : 'System restored to live operation.');
+  };
+
+  const handleDownloadMasterBackup = () => {
+    const backupData = {
+      exportDate: new Date().toISOString(),
+      exportedBy: currentUserEmail || 'veloxadsphere@gmail.com',
+      totalRevenue,
+      workspaces: allWorkspaces.map(w => ({
+        id: w.id,
+        businessName: w.businessName,
+        email: w.email,
+        ownerName: w.ownerName,
+        plan: w.plan,
+        status: w.status,
+        expiryDate: w.expiryDate,
+        signupDate: w.signupDate,
+        totalSpentBDT: w.totalSpentBDT
+      })),
+      subscriptions: subscription,
+      coupons,
+      announcement: globalAnnouncement,
+      auditLogs
+    };
+    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `quantrex_master_backup_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    logAuditEvent('BACKUP', 'Exported full encrypted master backup vault (.json)');
+    showToast('Master backup vault downloaded successfully!');
+  };
+
+  const handleExportCSV = () => {
+    const headers = ['Record ID', 'Agency / Workspace', 'Owner Email', 'Plan Tier', 'Amount (BDT)', 'Status', 'Expiry Date', 'Joined Date'];
+    const rows = allWorkspaces.map((w, idx) => [
+      `REC-${1000 + idx}`,
+      `"${(w.businessName || '').replace(/"/g, '""')}"`,
+      `"${w.email}"`,
+      `"${w.plan}"`,
+      w.totalSpentBDT || 500,
+      `"${w.status}"`,
+      `"${w.expiryDate || '2026-12-25'}"`,
+      `"${w.signupDate}"`
+    ]);
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `quantrex_revenue_ledger_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    logAuditEvent('EXPORT', 'Downloaded financial revenue ledger (.csv)');
+    showToast('Financial CSV ledger exported successfully!');
+  };
 
   // Coupon & Promo Code State
   const [coupons, setCoupons] = useState(() => {
@@ -359,118 +469,240 @@ export default function AdminConsoleView({
         </div>
       </div>
 
-      {/* ADMIN TABS NAVIGATION */}
-      <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-white dark:bg-[#0c121e] border border-slate-200 dark:border-slate-800 overflow-x-auto shadow-xs">
-        <button
-          type="button"
-          onClick={() => setActiveTab('overview')}
-          className={'px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ' + (
-            activeTab === 'overview'
-              ? 'bg-amber-500 text-slate-950 shadow-md font-black'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40'
-          )}
-        >
-          <BarChart3 size={14} />
-          <span>Executive Overview</span>
-        </button>
+      {/* 2-COLUMN EXECUTIVE LAYOUT: CATEGORIZED SIDEBAR ON LEFT, CONTENT ON RIGHT */}
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
+        {/* CATEGORIZED EXECUTIVE SIDEBAR */}
+        <aside className="w-full lg:w-64 xl:w-72 shrink-0 bg-white dark:bg-[#0c121e] border border-slate-200/90 dark:border-slate-800/90 rounded-2xl p-3 shadow-xs space-y-4">
+          {/* CATEGORY 1: PLATFORM TELEMETRY */}
+          <div>
+            <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 px-3 py-1">
+              Platform Telemetry
+            </div>
+            <div className="space-y-0.5 mt-1">
+              <button
+                type="button"
+                onClick={() => setActiveTab('overview')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  activeTab === 'overview'
+                    ? 'bg-amber-500 text-slate-950 font-bold shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <BarChart3 size={15} className={activeTab === 'overview' ? 'text-slate-950' : 'text-slate-400 dark:text-slate-500'} />
+                  <span>Executive Overview</span>
+                </div>
+              </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('users')}
-          className={'px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ' + (
-            activeTab === 'users'
-              ? 'bg-amber-500 text-slate-950 shadow-md font-black'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40'
-          )}
-        >
-          <Users size={14} />
-          <span>User Directory</span>
-          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-black/10 dark:bg-black/20 text-current">
-            {allWorkspaces.length}
-          </span>
-        </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('users')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  activeTab === 'users'
+                    ? 'bg-amber-500 text-slate-950 font-bold shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Users size={15} className={activeTab === 'users' ? 'text-slate-950' : 'text-slate-400 dark:text-slate-500'} />
+                  <span>User Directory</span>
+                </div>
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                  activeTab === 'users'
+                    ? 'bg-black/20 text-slate-950'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                }`}>
+                  {allWorkspaces.length}
+                </span>
+              </button>
+            </div>
+          </div>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('coupons')}
-          className={'px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ' + (
-            activeTab === 'coupons'
-              ? 'bg-amber-500 text-slate-950 shadow-md font-black'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40'
-          )}
-        >
-          <Tag size={14} />
-          <span>Promo &amp; Coupons</span>
-          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-black/10 dark:bg-black/20 text-current">
-            {coupons.filter(c => c.status === 'Active').length}
-          </span>
-        </button>
+          {/* CATEGORY 2: REVENUE & BILLING */}
+          <div>
+            <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 px-3 py-1">
+              Revenue &amp; Billing
+            </div>
+            <div className="space-y-0.5 mt-1">
+              <button
+                type="button"
+                onClick={() => setActiveTab('coupons')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  activeTab === 'coupons'
+                    ? 'bg-amber-500 text-slate-950 font-bold shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Tag size={15} className={activeTab === 'coupons' ? 'text-slate-950' : 'text-slate-400 dark:text-slate-500'} />
+                  <span>Promo &amp; Coupons</span>
+                </div>
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                  activeTab === 'coupons'
+                    ? 'bg-black/20 text-slate-950'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                }`}>
+                  {coupons.filter(c => c.status === 'Active').length}
+                </span>
+              </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('payments')}
-          className={'px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ' + (
-            activeTab === 'payments'
-              ? 'bg-amber-500 text-slate-950 shadow-md font-black'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40'
-          )}
-        >
-          <CreditCard size={14} />
-          <span>Payment Desk</span>
-          {pendingPaymentsCount > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500 text-slate-950 font-extrabold">
-              {pendingPaymentsCount}
-            </span>
-          )}
-        </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('payments')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  activeTab === 'payments'
+                    ? 'bg-amber-500 text-slate-950 font-bold shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <CreditCard size={15} className={activeTab === 'payments' ? 'text-slate-950' : 'text-slate-400 dark:text-slate-500'} />
+                  <span>Payment Desk</span>
+                </div>
+                {pendingPaymentsCount > 0 && (
+                  <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                    activeTab === 'payments' ? 'bg-black/20 text-slate-950' : 'bg-amber-500 text-slate-950'
+                  }`}>
+                    {pendingPaymentsCount}
+                  </span>
+                )}
+              </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('tickets')}
-          className={'px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ' + (
-            activeTab === 'tickets'
-              ? 'bg-amber-500 text-slate-950 shadow-md font-black'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40'
-          )}
-        >
-          <HelpCircle size={14} />
-          <span>Support Inbox</span>
-          {openTicketsCount > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-sky-500 text-white font-extrabold">
-              {openTicketsCount}
-            </span>
-          )}
-        </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('exports')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  activeTab === 'exports'
+                    ? 'bg-amber-500 text-slate-950 font-bold shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <FileSpreadsheet size={15} className={activeTab === 'exports' ? 'text-slate-950' : 'text-slate-400 dark:text-slate-500'} />
+                  <span>Financial Ledger</span>
+                </div>
+              </button>
+            </div>
+          </div>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('announcements')}
-          className={'px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ' + (
-            activeTab === 'announcements'
-              ? 'bg-amber-500 text-slate-950 shadow-md font-black'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40'
-          )}
-        >
-          <Bell size={14} />
-          <span>Broadcast</span>
-        </button>
+          {/* CATEGORY 3: COMMUNICATIONS */}
+          <div>
+            <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 px-3 py-1">
+              Communications
+            </div>
+            <div className="space-y-0.5 mt-1">
+              <button
+                type="button"
+                onClick={() => setActiveTab('tickets')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  activeTab === 'tickets'
+                    ? 'bg-amber-500 text-slate-950 font-bold shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <HelpCircle size={15} className={activeTab === 'tickets' ? 'text-slate-950' : 'text-slate-400 dark:text-slate-500'} />
+                  <span>Support Inbox</span>
+                </div>
+                {openTicketsCount > 0 && (
+                  <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                    activeTab === 'tickets' ? 'bg-black/20 text-slate-950' : 'bg-sky-500 text-white'
+                  }`}>
+                    {openTicketsCount}
+                  </span>
+                )}
+              </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('admins')}
-          className={'px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ' + (
-            activeTab === 'admins'
-              ? 'bg-amber-500 text-slate-950 shadow-md font-black'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40'
-          )}
-        >
-          <ShieldCheck size={14} />
-          <span>Co-Admins</span>
-          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-black/10 dark:bg-black/20 text-current">
-            {adminRoles.length}
-          </span>
-        </button>
-      </div>
+              <button
+                type="button"
+                onClick={() => setActiveTab('announcements')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  activeTab === 'announcements'
+                    ? 'bg-amber-500 text-slate-950 font-bold shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Bell size={15} className={activeTab === 'announcements' ? 'text-slate-950' : 'text-slate-400 dark:text-slate-500'} />
+                  <span>Broadcast Notices</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* CATEGORY 4: SYSTEM & SECURITY */}
+          <div>
+            <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 px-3 py-1">
+              System &amp; Security
+            </div>
+            <div className="space-y-0.5 mt-1">
+              <button
+                type="button"
+                onClick={() => setActiveTab('system')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  activeTab === 'system'
+                    ? 'bg-amber-500 text-slate-950 font-bold shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Database size={15} className={activeTab === 'system' ? 'text-slate-950' : 'text-slate-400 dark:text-slate-500'} />
+                  <span>Health &amp; Vault</span>
+                </div>
+                {maintenanceMode && (
+                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" title="Maintenance Active" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('audit')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  activeTab === 'audit'
+                    ? 'bg-amber-500 text-slate-950 font-bold shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Clock size={15} className={activeTab === 'audit' ? 'text-slate-950' : 'text-slate-400 dark:text-slate-500'} />
+                  <span>Audit Trail</span>
+                </div>
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                  activeTab === 'audit'
+                    ? 'bg-black/20 text-slate-950'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                }`}>
+                  {auditLogs.length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('admins')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  activeTab === 'admins'
+                    ? 'bg-amber-500 text-slate-950 font-bold shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <ShieldCheck size={15} className={activeTab === 'admins' ? 'text-slate-950' : 'text-slate-400 dark:text-slate-500'} />
+                  <span>Co-Admins</span>
+                </div>
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                  activeTab === 'admins'
+                    ? 'bg-black/20 text-slate-950'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                }`}>
+                  {adminRoles.length}
+                </span>
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        {/* RIGHT CONTENT WORKSPACE */}
+        <div className="flex-1 min-w-0 w-full space-y-6">
 
       {/* --- TAB 1: EXECUTIVE OVERVIEW --- */}
       {activeTab === 'overview' && (
@@ -1198,6 +1430,202 @@ export default function AdminConsoleView({
         </div>
       )}
 
+      {/* --- TAB: FINANCIAL LEDGER & EXPORT --- */}
+      {activeTab === 'exports' && (
+        <div className="space-y-4">
+          <div className="p-5 rounded-2xl bg-white dark:bg-[#0c121e] border border-slate-200/90 dark:border-slate-800/90 space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Financial Revenue Ledger &amp; Export</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Audit verified inflows, subscription billing history and export records to spreadsheet</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleExportCSV}
+                className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-xs transition-all cursor-pointer inline-flex items-center gap-2"
+              >
+                <Download size={14} />
+                <span>Export Ledger (.CSV)</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#070b13] border border-slate-200 dark:border-slate-800">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Verified Inflow</div>
+                <div className="text-xl font-black text-slate-900 dark:text-white mt-1">৳{totalRevenue.toLocaleString()}</div>
+              </div>
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#070b13] border border-slate-200 dark:border-slate-800">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Active Subscriptions</div>
+                <div className="text-xl font-black text-slate-900 dark:text-white mt-1">{allWorkspaces.filter(w => w.status === 'Active').length} Agencies</div>
+              </div>
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#070b13] border border-slate-200 dark:border-slate-800">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Average Revenue / Agency</div>
+                <div className="text-xl font-black text-slate-900 dark:text-white mt-1">৳{(Math.round(totalRevenue / Math.max(1, allWorkspaces.length))).toLocaleString()}</div>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto pt-2">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                    <th className="pb-3">Record ID</th>
+                    <th className="pb-3">Agency Name</th>
+                    <th className="pb-3">Owner Email</th>
+                    <th className="pb-3">Plan Tier</th>
+                    <th className="pb-3">Amount</th>
+                    <th className="pb-3">Status</th>
+                    <th className="pb-3">Renewal Date</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
+                  {allWorkspaces.map((w, idx) => (
+                    <tr key={w.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                      <td className="py-3 font-mono font-bold text-sky-600 dark:text-sky-400">REC-100{idx + 1}</td>
+                      <td className="py-3 font-bold text-slate-900 dark:text-white">{w.businessName}</td>
+                      <td className="py-3 text-slate-600 dark:text-slate-400">{w.email}</td>
+                      <td className="py-3 font-semibold text-slate-800 dark:text-slate-200">{w.plan}</td>
+                      <td className="py-3 font-black text-slate-900 dark:text-white">৳{(w.totalSpentBDT || 500).toLocaleString()}</td>
+                      <td className="py-3">
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+                          ● {w.status}
+                        </span>
+                      </td>
+                      <td className="py-3 text-slate-500 dark:text-slate-400">{w.expiryDate || '2026-12-25'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- TAB: SYSTEM HEALTH & VAULT --- */}
+      {activeTab === 'system' && (
+        <div className="space-y-4">
+          <div className="p-5 rounded-2xl bg-white dark:bg-[#0c121e] border border-slate-200/90 dark:border-slate-800/90 space-y-4">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">System Health, Maintenance &amp; Backup Vault</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Control cloud telemetry, download database snapshots and schedule maintenance mode</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* CARD 1: CLOUD LATENCY */}
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#070b13] border border-slate-200 dark:border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Supabase Cloud</span>
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                </div>
+                <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{latencyMs}ms</div>
+                <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                  Status: <strong className="text-emerald-600 dark:text-emerald-400 font-semibold">Healthy (Optimal)</strong>
+                  <br />Region: ap-southeast-1 (Singapore)
+                </div>
+              </div>
+
+              {/* CARD 2: MASTER BACKUP VAULT */}
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#070b13] border border-slate-200 dark:border-slate-800 space-y-3 flex flex-col justify-between">
+                <div>
+                  <div className="text-xs font-bold text-slate-700 dark:text-slate-300">Master Backup Vault</div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                    Download complete encrypted JSON snapshot of workspaces, subscriptions and coupons.
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleDownloadMasterBackup}
+                  className="w-full py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all cursor-pointer inline-flex items-center justify-center gap-1.5"
+                >
+                  <Download size={13} />
+                  <span>Download Backup (.JSON)</span>
+                </button>
+              </div>
+
+              {/* CARD 3: MAINTENANCE MODE */}
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#070b13] border border-slate-200 dark:border-slate-800 space-y-3 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Maintenance Mode</span>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                      maintenanceMode ? 'bg-rose-500/20 text-rose-500' : 'bg-emerald-500/20 text-emerald-600'
+                    }`}>
+                      {maintenanceMode ? 'Active' : 'Disabled'}
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                    When active, clients see a scheduled maintenance notice while you perform upgrades.
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleToggleMaintenance}
+                  className={`w-full py-2 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center justify-center gap-1.5 ${
+                    maintenanceMode
+                      ? 'bg-rose-600 hover:bg-rose-500 text-white'
+                      : 'bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 text-slate-800 dark:text-slate-200'
+                  }`}
+                >
+                  <Power size={13} />
+                  <span>{maintenanceMode ? 'Disable Maintenance' : 'Enable Maintenance'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- TAB: ADMIN AUDIT TRAIL --- */}
+      {activeTab === 'audit' && (
+        <div className="space-y-4">
+          <div className="p-5 rounded-2xl bg-white dark:bg-[#0c121e] border border-slate-200/90 dark:border-slate-800/90 space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Admin Audit Trail &amp; Activity Logs</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Chronological record of administrative decisions, plan upgrades and security events</p>
+              </div>
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-lg">
+                Total Events: {auditLogs.length}
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                    <th className="pb-3">Timestamp</th>
+                    <th className="pb-3">Category</th>
+                    <th className="pb-3">Event Description</th>
+                    <th className="pb-3">Actor / Admin</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
+                  {auditLogs.map(log => (
+                    <tr key={log.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                      <td className="py-3 font-mono text-slate-500 dark:text-slate-400 text-[11px]">{log.timestamp}</td>
+                      <td className="py-3">
+                        <span className={'px-2 py-0.5 rounded-md text-[9.5px] font-black uppercase tracking-wider ' + (
+                          log.category === 'SECURITY'
+                            ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                            : log.category === 'BILLING'
+                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                            : log.category === 'COUPON'
+                            ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                        )}>
+                          {log.category}
+                        </span>
+                      </td>
+                      <td className="py-3 text-slate-800 dark:text-slate-200 font-medium">{log.detail}</td>
+                      <td className="py-3 text-slate-500 dark:text-slate-400 text-[11px]">{log.actor}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* --- TAB 6: CO-ADMIN MANAGEMENT --- */}
       {activeTab === 'admins' && (
         <div className="space-y-4">
@@ -1288,6 +1716,8 @@ export default function AdminConsoleView({
           </div>
         </div>
       )}
+        </div>
+      </div>
     </div>
   );
 }
