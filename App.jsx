@@ -13,6 +13,7 @@ import {
   RefreshCw, Radio, Terminal, Cpu, Clock, Zap, Play, Pause, Layers, BookOpen, HelpCircle, Sun, Moon
 } from 'lucide-react';
 import AdminConsoleView from './src/AdminConsoleView.jsx';
+import CreateWorkspaceModal from './src/CreateWorkspaceModal.jsx';
 import { supabase } from './src/lib/supabase.js';
 import { QUANTREX_LOGO_DATA_URL } from './src/quantrex-logo.js';
 import { QUANTREX_WORDMARK_DATA_URL } from './src/quantrex-wordmark.js';
@@ -42,30 +43,14 @@ export async function getAdLedgerWorkspaceId() {
   resolvedUserId = user.id;
   resolvedWorkspacePromise = (async () => {
     try {
-      // 1. Check cached workspace in localStorage first
-      if (typeof window !== 'undefined') {
-        const cachedWsId = window.localStorage.getItem('adlytic_active_workspace_id');
-        if (cachedWsId) {
-          const { data: testRows } = await supabase
-            .from('workspace_app_data')
-            .select('data_key, data')
-            .eq('workspace_id', cachedWsId)
-            .limit(3);
-          if (Array.isArray(testRows) && testRows.length > 0) {
-            resolvedWorkspaceId = cachedWsId;
-            return cachedWsId;
-          }
-        }
-      }
-
-      // 2. Fetch all workspaces the user owns
+      // 1. Fetch all workspaces the user owns
       const { data: ownedWorkspaces } = await supabase
         .from('workspaces')
         .select('id, created_at')
         .eq('owner_id', user.id)
         .order('created_at', { ascending: false });
 
-      // 3. Fetch all workspaces where user is a member
+      // 2. Fetch all workspaces where user is a member
       const { data: memberWorkspaces } = await supabase
         .from('workspace_members')
         .select('workspace_id, created_at')
@@ -94,6 +79,13 @@ export async function getAdLedgerWorkspaceId() {
         return newId;
       }
 
+      // 3. Honor user's cached active workspace if valid
+      const cachedWsId = typeof window !== 'undefined' ? window.localStorage.getItem('adlytic_active_workspace_id') : null;
+      if (cachedWsId && uniqueIds.includes(cachedWsId)) {
+        resolvedWorkspaceId = cachedWsId;
+        return cachedWsId;
+      }
+
       if (uniqueIds.length === 1) {
         const onlyId = uniqueIds[0];
         resolvedWorkspaceId = onlyId;
@@ -103,7 +95,7 @@ export async function getAdLedgerWorkspaceId() {
         return onlyId;
       }
 
-      // Multiple workspaces exist: find the one that has the user's ledger data!
+      // Multiple workspaces exist and no valid cached choice: find the one that has the user's ledger data!
       let bestWsId = uniqueIds[0];
       let maxDataScore = -1;
 
@@ -147,6 +139,16 @@ export async function getAdLedgerWorkspaceId() {
 function getInitialLocalValue(key, initialValue) {
   if (typeof window === 'undefined') return initialValue;
   try {
+    const cachedWsId = window.localStorage.getItem('adlytic_active_workspace_id');
+    // Check workspace-specific key first!
+    if (cachedWsId) {
+      const wsKey = `${key}__workspace_${cachedWsId}`;
+      const wsVal = window.localStorage.getItem(wsKey);
+      if (wsVal !== null) {
+        return JSON.parse(wsVal);
+      }
+    }
+
     const k1 = window.localStorage.getItem(`adlytic_${key}`);
     if (k1 !== null) {
       const p1 = JSON.parse(k1);
@@ -157,18 +159,6 @@ function getInitialLocalValue(key, initialValue) {
     if (k2 !== null) {
       const p2 = JSON.parse(k2);
       if (Array.isArray(p2) ? p2.length > 0 : !!p2) return p2;
-    }
-
-    // Check workspace-scoped keys in localStorage
-    for (let i = 0; i < window.localStorage.length; i++) {
-      const storageKey = window.localStorage.key(i);
-      if (storageKey && storageKey.startsWith(key) && storageKey.includes('workspace')) {
-        const val = window.localStorage.getItem(storageKey);
-        if (val) {
-          const parsed = JSON.parse(val);
-          if (Array.isArray(parsed) ? parsed.length > 0 : !!parsed) return parsed;
-        }
-      }
     }
 
     if (k1 !== null) return JSON.parse(k1);
@@ -805,6 +795,27 @@ export default function AdLedgerApp() {
   const [isQuickSettingsOpen, setIsQuickSettingsOpen] = useState(false);
   const quickSettingsRef = useRef(null);
 
+  // Agency Workspace Switcher & Multi-Tenant State
+  const [isWorkspaceDropdownOpen, setIsWorkspaceDropdownOpen] = useState(false);
+  const workspaceDropdownRef = useRef(null);
+  const [isCreateWorkspaceModalOpen, setIsCreateWorkspaceModalOpen] = useState(false);
+  const [isCreatingWorkspace, setIsCreatingWorkspace] = useState(false);
+  const [activeWsId, setActiveWsId] = useState(() => {
+    if (typeof window === 'undefined') return null;
+    return window.localStorage.getItem('adlytic_active_workspace_id');
+  });
+  const [userWorkspaces, setUserWorkspaces] = useState(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const cached = window.localStorage.getItem('quantrex_user_workspaces');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return [];
+  });
+
   // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(e) {
@@ -814,10 +825,203 @@ export default function AdLedgerApp() {
       if (quickSettingsRef.current && !quickSettingsRef.current.contains(e.target)) {
         setIsQuickSettingsOpen(false);
       }
+      if (workspaceDropdownRef.current && !workspaceDropdownRef.current.contains(e.target)) {
+        setIsWorkspaceDropdownOpen(false);
+      }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Sync current active workspace details into userWorkspaces
+  useEffect(() => {
+    if (!workspaceSettings?.businessName) return;
+    const currentId = (typeof window !== 'undefined' && window.localStorage.getItem('adlytic_active_workspace_id')) || activeWsId || 'default_ws';
+    setActiveWsId(currentId);
+    setUserWorkspaces(prev => {
+      const exists = prev.find(w => w.id === currentId);
+      const entry = {
+        id: currentId,
+        businessName: workspaceSettings.businessName,
+        shortCode: workspaceSettings.shortCode || 'AC',
+        primaryCurrency: workspaceSettings.primaryCurrency || 'BDT',
+        logo: workspaceLogo || null,
+      };
+      let next;
+      if (exists) {
+        next = prev.map(w => w.id === currentId ? { ...w, ...entry } : w);
+      } else {
+        next = [entry, ...prev];
+      }
+      try {
+        window.localStorage.setItem('quantrex_user_workspaces', JSON.stringify(next));
+      } catch (e) {}
+      return next;
+    });
+  }, [workspaceSettings.businessName, workspaceSettings.shortCode, workspaceSettings.primaryCurrency, workspaceLogo, activeWsId]);
+
+  // Sync all workspaces owned/joined by user from Supabase
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user || cancelled) return;
+
+        const { data: owned } = await supabase
+          .from('workspaces')
+          .select('id, created_at')
+          .eq('owner_id', user.id)
+          .order('created_at', { ascending: false });
+
+        const { data: member } = await supabase
+          .from('workspace_members')
+          .select('workspace_id, created_at')
+          .eq('user_id', user.id);
+
+        const allIds = Array.from(new Set([
+          ...(owned || []).map(o => o.id),
+          ...(member || []).map(m => m.workspace_id)
+        ].filter(Boolean)));
+
+        if (allIds.length === 0 || cancelled) return;
+
+        const { data: rows } = await supabase
+          .from('workspace_app_data')
+          .select('workspace_id, data_key, data')
+          .in('workspace_id', allIds)
+          .in('data_key', ['adledger_settings', 'adlytic_workspace_logo']);
+
+        if (cancelled) return;
+
+        const wsMap = {};
+        allIds.forEach(id => {
+          wsMap[id] = { id, businessName: 'Agency Workspace', shortCode: 'AW', primaryCurrency: 'BDT', logo: null };
+        });
+
+        (rows || []).forEach(r => {
+          if (!wsMap[r.workspace_id]) return;
+          if (r.data_key === 'adledger_settings' && r.data) {
+            wsMap[r.workspace_id].businessName = r.data.businessName || wsMap[r.workspace_id].businessName;
+            wsMap[r.workspace_id].shortCode = r.data.shortCode || wsMap[r.workspace_id].shortCode;
+            wsMap[r.workspace_id].primaryCurrency = r.data.primaryCurrency || wsMap[r.workspace_id].primaryCurrency;
+          }
+          if (r.data_key === 'adlytic_workspace_logo' && r.data) {
+            wsMap[r.workspace_id].logo = r.data;
+          }
+        });
+
+        const currentId = (typeof window !== 'undefined' && window.localStorage.getItem('adlytic_active_workspace_id')) || allIds[0];
+        if (wsMap[currentId] && workspaceSettings?.businessName) {
+          wsMap[currentId].businessName = workspaceSettings.businessName;
+          wsMap[currentId].shortCode = workspaceSettings.shortCode || wsMap[currentId].shortCode;
+          wsMap[currentId].primaryCurrency = workspaceSettings.primaryCurrency || wsMap[currentId].primaryCurrency;
+          wsMap[currentId].logo = workspaceLogo || wsMap[currentId].logo;
+        }
+
+        const list = Object.values(wsMap);
+        setUserWorkspaces(list);
+        window.localStorage.setItem('quantrex_user_workspaces', JSON.stringify(list));
+      } catch (err) {
+        console.warn('Sync user workspaces warning:', err);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [workspaceSettings.businessName, workspaceLogo]);
+
+  // Switch to another agency workspace
+  const handleSwitchWorkspace = (targetWsId) => {
+    const currentId = (typeof window !== 'undefined' && window.localStorage.getItem('adlytic_active_workspace_id')) || activeWsId;
+    if (targetWsId === currentId) {
+      setIsWorkspaceDropdownOpen(false);
+      return;
+    }
+    setIsWorkspaceDropdownOpen(false);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('adlytic_active_workspace_id', targetWsId);
+      window.location.reload();
+    }
+  };
+
+  // Create new agency workspace
+  const handleCreateWorkspace = async ({ businessName, shortCode, workspaceType, primaryCurrency, defaultUSDRate }) => {
+    setIsCreatingWorkspace(true);
+    try {
+      let newWsId = null;
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: newWs } = await supabase
+            .from('workspaces')
+            .insert([{ owner_id: user.id }])
+            .select('id')
+            .single();
+          if (newWs?.id) {
+            newWsId = newWs.id;
+          }
+        }
+      } catch (err) {
+        console.warn('Could not create workspace in Supabase, generating local ID:', err);
+      }
+
+      if (!newWsId) {
+        newWsId = `ws_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      }
+
+      const cleanName = (businessName || 'New Agency').trim();
+      const cleanCode = (shortCode || cleanName.slice(0, 3)).toUpperCase().trim();
+      const cleanCurrency = primaryCurrency || 'BDT';
+
+      const newSettings = {
+        ...DEFAULT_SETTINGS,
+        businessName: cleanName,
+        shortCode: cleanCode,
+        workspaceType: workspaceType || 'Digital Marketing Agency',
+        primaryCurrency: cleanCurrency,
+        defaultUSDRate: defaultUSDRate || '125',
+      };
+
+      try {
+        await supabase.from('workspace_app_data').upsert({
+          workspace_id: newWsId,
+          data_key: 'adledger_settings',
+          data: newSettings,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'workspace_id,data_key' });
+      } catch (e) {
+        console.warn('Could not save workspace settings to cloud:', e);
+      }
+
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(`adledger_settings__workspace_${newWsId}`, JSON.stringify(newSettings));
+        window.localStorage.setItem(`adledger_clients__workspace_${newWsId}`, JSON.stringify([]));
+        window.localStorage.setItem(`adledger_cards__workspace_${newWsId}`, JSON.stringify([]));
+        window.localStorage.setItem(`adledger_transactions__workspace_${newWsId}`, JSON.stringify([]));
+        window.localStorage.setItem(`adledger_campaigns__workspace_${newWsId}`, JSON.stringify([]));
+        window.localStorage.setItem(`adledger_team__workspace_${newWsId}`, JSON.stringify([]));
+        window.localStorage.setItem(`adlytic_workspace_logo__workspace_${newWsId}`, JSON.stringify(''));
+
+        const updatedList = [
+          ...userWorkspaces.filter(w => w.id !== newWsId),
+          {
+            id: newWsId,
+            businessName: cleanName,
+            shortCode: cleanCode,
+            primaryCurrency: cleanCurrency,
+            logo: null
+          }
+        ];
+        window.localStorage.setItem('quantrex_user_workspaces', JSON.stringify(updatedList));
+        window.localStorage.setItem('adlytic_active_workspace_id', newWsId);
+        window.location.reload();
+      }
+    } catch (err) {
+      console.error('Error creating workspace:', err);
+      alert('Failed to create workspace: ' + (err.message || 'Unknown error'));
+    } finally {
+      setIsCreatingWorkspace(false);
+    }
+  };
 
   const handleQuickLogOut = async () => {
     try {
@@ -1460,55 +1664,180 @@ export default function AdLedgerApp() {
           <div className="space-y-2.5 sm:space-y-3 flex flex-col gap-2.5 sm:gap-3">
             
             {/* PORTION 1: Top Active Agency Switcher Pill */}
-            <div className={`adl-sidebar-card rounded-2xl sm:rounded-3xl p-2 sm:p-3 transition-all border ${
-              theme === 'dark'
-                ? 'bg-[#111722] border-white/10 shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
-                : 'bg-white border-slate-200/90 shadow-[0_4px_18px_rgba(166,180,200,0.25)]'
-            }`}>
-              <div className="flex items-center gap-2.5">
-                {workspaceLogo ? (
-                  <img
-                    src={workspaceLogo}
-                    alt="Workspace logo"
-                    className="w-9 h-9 rounded-2xl object-cover ring-1 ring-black/5 shrink-0 bg-white shadow-xs"
-                  />
-                ) : (
-                  <div className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 border ${
-                    theme === 'dark'
-                      ? 'bg-[#091422] border-sky-500/30 text-sky-400 shadow-none'
-                      : 'bg-[#ebf0f7] border-white shadow-[inset_2px_2px_4px_rgba(166,180,200,0.4),inset_-2px_-2px_4px_#ffffff] text-blue-600'
-                  }`}>
-                    <Building size={16} className={theme === 'dark' ? 'text-sky-400' : 'text-blue-600'} />
+            <div className="relative" ref={workspaceDropdownRef}>
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => setIsWorkspaceDropdownOpen(prev => !prev)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsWorkspaceDropdownOpen(prev => !prev); }}
+                className={`adl-sidebar-card rounded-2xl sm:rounded-3xl p-2 sm:p-3 transition-all border cursor-pointer select-none ${
+                  theme === 'dark'
+                    ? 'bg-[#111722] hover:bg-[#161f2e] border-white/10 hover:border-sky-500/40 shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
+                    : 'bg-white hover:bg-slate-50 border-slate-200/90 hover:border-sky-400 shadow-[0_4px_18px_rgba(166,180,200,0.25)]'
+                } ${isWorkspaceDropdownOpen ? (theme === 'dark' ? 'ring-2 ring-sky-500/40' : 'ring-2 ring-sky-400') : ''}`}
+                title="Click to switch or create agency workspace"
+              >
+                <div className="flex items-center gap-2.5">
+                  {workspaceLogo ? (
+                    <img
+                      src={workspaceLogo}
+                      alt="Workspace logo"
+                      className="w-9 h-9 rounded-2xl object-cover ring-1 ring-black/5 shrink-0 bg-white shadow-xs"
+                    />
+                  ) : (
+                    <div className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 border ${
+                      theme === 'dark'
+                        ? 'bg-[#091422] border-sky-500/30 text-sky-400 shadow-none'
+                        : 'bg-[#ebf0f7] border-white shadow-[inset_2px_2px_4px_rgba(166,180,200,0.4),inset_-2px_-2px_4px_#ffffff] text-blue-600'
+                    }`}>
+                      <Building size={16} className={theme === 'dark' ? 'text-sky-400' : 'text-blue-600'} />
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between">
+                      <span className={`block text-xs font-black tracking-tight truncate ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                        {workspaceSettings.businessName || 'Quantrex'}
+                      </span>
+                      {userWorkspaces.length > 1 ? (
+                        <ChevronDown
+                          size={13}
+                          className={`text-slate-400 shrink-0 ml-1 transition-transform duration-200 ${isWorkspaceDropdownOpen ? 'rotate-180 text-sky-400' : 'opacity-70'}`}
+                        />
+                      ) : (
+                        <Plus
+                          size={13}
+                          className={`text-slate-400 hover:text-sky-500 shrink-0 ml-1 transition-colors ${isWorkspaceDropdownOpen ? 'text-sky-400' : 'opacity-60'}`}
+                          title="Add another workspace"
+                        />
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.8)] shrink-0" />
+                      <span className={`text-[9px] font-bold uppercase tracking-wider truncate ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+                        ACTIVE AGENCY
+                      </span>
+                    </div>
                   </div>
-                )}
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between">
-                    <span className={`block text-xs font-black tracking-tight truncate ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-                      {workspaceSettings.businessName || 'Quantrex'}
+                  {/* Mobile close button */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`md:hidden p-1.5 rounded-xl transition-colors ml-1 shrink-0 cursor-pointer ${
+                      theme === 'dark'
+                        ? 'text-slate-400 hover:text-white hover:bg-white/10'
+                        : 'text-slate-400 hover:text-slate-700 hover:bg-black/5'
+                    }`}
+                    aria-label="Close sidebar"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              </div>
+
+              {/* WORKSPACE SWITCHER DROPDOWN */}
+              {isWorkspaceDropdownOpen && (
+                <div className={`absolute top-full left-0 right-0 mt-2 z-50 rounded-2xl p-2.5 shadow-2xl border backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-150 ${
+                  theme === 'dark'
+                    ? 'bg-[#0f1724]/95 border-white/15 shadow-[0_12px_30px_rgba(0,0,0,0.8)]'
+                    : 'bg-white/95 border-slate-200 shadow-[0_12px_30px_rgba(166,180,200,0.35)]'
+                }`}>
+                  <div className="flex items-center justify-between px-2 py-1 mb-1.5">
+                    <span className="text-[10px] font-black tracking-wider uppercase text-slate-400">
+                      Your Agencies
                     </span>
-                    <ChevronDown size={13} className="text-slate-400 shrink-0 ml-1 opacity-70" />
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-sky-500/10 text-sky-500">
+                      {Math.max(1, userWorkspaces.length)} {userWorkspaces.length <= 1 ? 'Agency' : 'Agencies'}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.8)] shrink-0" />
-                    <span className={`text-[9px] font-bold uppercase tracking-wider truncate ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
-                      ACTIVE AGENCY
-                    </span>
+
+                  <div className="max-h-52 overflow-y-auto space-y-1 pr-0.5 no-scrollbar">
+                    {(userWorkspaces.length > 0 ? userWorkspaces : [{
+                      id: activeWsId || 'default_ws',
+                      businessName: workspaceSettings.businessName || 'Quantrex Agency',
+                      shortCode: workspaceSettings.shortCode || 'AC',
+                      primaryCurrency: workspaceSettings.primaryCurrency || 'BDT',
+                      logo: workspaceLogo
+                    }]).map((ws) => {
+                      const isActive = (ws.id === activeWsId) || (userWorkspaces.length <= 1);
+                      return (
+                        <button
+                          key={ws.id}
+                          type="button"
+                          onClick={() => handleSwitchWorkspace(ws.id)}
+                          className={`w-full flex items-center gap-2.5 p-2 rounded-xl text-left transition-all cursor-pointer ${
+                            isActive
+                              ? theme === 'dark'
+                                ? 'bg-sky-500/15 border border-sky-500/30 text-white'
+                                : 'bg-sky-50 border border-sky-200 text-sky-950 font-semibold'
+                              : theme === 'dark'
+                                ? 'hover:bg-white/5 text-slate-300 hover:text-white border border-transparent'
+                                : 'hover:bg-slate-100 text-slate-700 hover:text-slate-900 border border-transparent'
+                          }`}
+                        >
+                          {ws.logo ? (
+                            <img src={ws.logo} alt="" className="w-7 h-7 rounded-lg object-cover shrink-0" />
+                          ) : (
+                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-black ${
+                              isActive
+                                ? 'bg-sky-500 text-white'
+                                : theme === 'dark' ? 'bg-[#182334] text-slate-400' : 'bg-slate-200 text-slate-600'
+                            }`}>
+                              {(ws.shortCode || ws.businessName?.slice(0, 2) || 'AG').slice(0, 2).toUpperCase()}
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <div className="text-xs font-bold truncate">
+                              {ws.businessName || 'Agency Workspace'}
+                            </div>
+                            <div className="text-[10px] text-slate-400 truncate flex items-center gap-1.5">
+                              <span>{ws.shortCode || 'AC'}</span>
+                              <span>•</span>
+                              <span>{ws.primaryCurrency || 'BDT'}</span>
+                            </div>
+                          </div>
+                          {isActive && (
+                            <div className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center shrink-0">
+                              <Check size={12} strokeWidth={3} />
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="mt-2 pt-2 border-t border-slate-200/60 dark:border-white/10 space-y-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsWorkspaceDropdownOpen(false);
+                        setIsCreateWorkspaceModalOpen(true);
+                      }}
+                      className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white shadow-sm transition-all cursor-pointer"
+                    >
+                      <Plus size={14} strokeWidth={2.5} />
+                      <span>+ Create New Workspace</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsWorkspaceDropdownOpen(false);
+                        setCurrentView('settings');
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-center gap-1.5 py-1.5 text-[11px] font-medium transition-colors cursor-pointer ${
+                        theme === 'dark' ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
+                      }`}
+                    >
+                      <Settings size={12} />
+                      <span>Agency Settings & Profile</span>
+                    </button>
                   </div>
                 </div>
-                {/* Mobile close button */}
-                <button
-                  type="button"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`md:hidden p-1.5 rounded-xl transition-colors ml-1 shrink-0 cursor-pointer ${
-                    theme === 'dark'
-                      ? 'text-slate-400 hover:text-white hover:bg-white/10'
-                      : 'text-slate-400 hover:text-slate-700 hover:bg-black/5'
-                  }`}
-                  aria-label="Close sidebar"
-                >
-                  <X size={16} />
-                </button>
-              </div>
+              )}
             </div>
 
             {/* PORTION 2: Main Navigation Menu Card */}
@@ -1979,6 +2308,12 @@ export default function AdLedgerApp() {
 
         {/* MODALS */}
         {/* iOS Safari PWA Install Modal */}
+        <CreateWorkspaceModal
+          isOpen={isCreateWorkspaceModalOpen}
+          onClose={() => setIsCreateWorkspaceModalOpen(false)}
+          onCreate={handleCreateWorkspace}
+          theme={theme}
+        />
         {showIosInstallModal && (
           <Modal title="Install Quantrex on iPhone / iPad" onClose={() => setShowIosInstallModal(false)} width="max-w-sm">
             <div className="space-y-4 py-2">
@@ -13879,10 +14214,18 @@ function SettingsView({ settings, logo, subscription, onUpdateSubscription, onSa
           <div className="lg:col-span-2 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-4">
             <div className="flex items-center gap-2.5 border-b border-slate-100 pb-3">
               <SlidersHorizontal size={18} className="text-sky-600" />
-              <div>
+              <div className="flex-1">
                 <h3 className="font-bold text-slate-900 text-sm">Identity & Localization</h3>
                 <p className="text-[11px] text-slate-500">Default currencies, timezones and reporting language.</p>
               </div>
+              <button
+                type="button"
+                onClick={() => setIsCreateWorkspaceModalOpen(true)}
+                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200/80 flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+              >
+                <Plus size={14} />
+                <span>+ Add Another Workspace</span>
+              </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

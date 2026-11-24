@@ -879,10 +879,10 @@ function AdminPortalApp() {
   // 2. UNLOCKED EXECUTIVE ADMIN CONSOLE
   // ==========================================
   return (
-    <div className={`min-h-screen w-full ${theme === 'dark' ? 'bg-[#06090e] text-slate-100' : 'bg-slate-100 text-slate-900'} antialiased transition-colors font-sans`}>
+    <div className={`min-h-screen w-full ${theme === 'dark' ? 'bg-[#06090e] text-slate-100' : 'bg-slate-50 text-slate-900'} antialiased transition-colors font-sans`}>
       {/* Master Top Bar */}
       <header className={`sticky top-0 z-50 backdrop-blur-xl border-b ${
-        theme === 'dark' ? 'bg-[#090d15]/90 border-white/10' : 'bg-white/90 border-slate-200'
+        theme === 'dark' ? 'bg-[#090d15]/90 border-white/10' : 'bg-white/95 border-slate-200/90 shadow-xs'
       } px-4 lg:px-8 py-3 flex items-center justify-between`}>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-rose-700 flex items-center justify-center shadow-md shadow-red-500/20">
@@ -890,13 +890,13 @@ function AdminPortalApp() {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-black text-base sm:text-lg tracking-tight">Quantrex Master Portal</span>
-              <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black tracking-wider uppercase bg-red-500/15 text-red-400 border border-red-500/30">
+              <span className="font-black text-base sm:text-lg tracking-tight text-slate-900 dark:text-white">Quantrex Master Portal</span>
+              <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-wider uppercase bg-rose-500/10 text-rose-600 dark:bg-red-500/15 dark:text-red-400 border border-rose-500/20 dark:border-red-500/30">
                 <Sparkles size={10} /> Root Executive
               </span>
             </div>
-            <div className="flex items-center gap-2 text-[11px] text-slate-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               <span>Live System: {MASTER_EMAIL}</span>
             </div>
           </div>
@@ -911,7 +911,7 @@ function AdminPortalApp() {
             className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
               theme === 'dark' 
                 ? 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 hover:text-white' 
-                : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
+                : 'bg-slate-100 hover:bg-slate-200/80 border-slate-200 text-slate-700'
             }`}
             title="Open customer app in new tab to test user experience"
           >
@@ -925,11 +925,11 @@ function AdminPortalApp() {
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
               theme === 'dark'
                 ? 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'
-                : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
+                : 'bg-slate-100 hover:bg-slate-200/80 border-slate-200 text-slate-700'
             }`}
             title="Change Master Access Code"
           >
-            <KeyRound size={13} className="text-red-400" />
+            <KeyRound size={13} className="text-red-500 dark:text-red-400" />
             <span className="hidden sm:inline">Change Code</span>
           </button>
 
@@ -939,7 +939,7 @@ function AdminPortalApp() {
             className={`p-2 rounded-xl border transition-all ${
               theme === 'dark'
                 ? 'bg-white/5 border-white/10 text-amber-400 hover:bg-white/10'
-                : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
+                : 'bg-slate-100 hover:bg-slate-200/80 border-slate-200 text-amber-600'
             }`}
             title="Toggle theme"
           >
@@ -949,7 +949,7 @@ function AdminPortalApp() {
           <button
             type="button"
             onClick={handleLock}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black bg-rose-500/15 border border-rose-500/30 text-rose-400 hover:bg-rose-500/25 transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black bg-rose-500/15 border border-rose-500/30 text-rose-500 dark:text-rose-400 hover:bg-rose-500/25 transition-all cursor-pointer"
             title="Lock Console and exit"
           >
             <Lock size={13} />

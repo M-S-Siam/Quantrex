@@ -3,8 +3,9 @@ export default {
   darkMode: 'class',
   content: [
     './index.html',
-    './*.jsx',
-    './*.js',
+    './admin.html',
+    './*.{js,ts,jsx,tsx}',
+    './src/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
     extend: {},
