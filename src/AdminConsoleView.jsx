@@ -1,10 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Crown, Users, CreditCard, Coins, Building, TrendingUp,
   AlertCircle, CheckCircle2, Search, Filter, Mail, HelpCircle,
   Bell, Sparkles, ShieldCheck, UserPlus, Trash2, ArrowRight,
   ExternalLink, Check, Copy, SlidersHorizontal, BriefcaseBusiness,
-  BarChart3, RefreshCw, X, ChevronRight
+  BarChart3, RefreshCw, X, ChevronRight, Tag, Plus, Percent, Calendar
 } from 'lucide-react';
 
 export default function AdminConsoleView({
@@ -35,6 +35,122 @@ export default function AdminConsoleView({
   const [newAdminRole, setNewAdminRole] = useState('Co-Admin');
   const [statusMessage, setStatusMessage] = useState('');
 
+  // Coupon & Promo Code State
+  const [coupons, setCoupons] = useState(() => {
+    try {
+      const saved = localStorage.getItem('quantrex_promo_coupons');
+      return saved ? JSON.parse(saved) : [
+        { id: 'c1', code: 'LAUNCH50', discount: 50, type: 'percent', maxUses: 50, usedCount: 14, expiryDate: '2026-12-31', status: 'Active' },
+        { id: 'c2', code: 'WINTER2026', discount: 150, type: 'fixed', maxUses: 30, usedCount: 8, expiryDate: '2026-12-15', status: 'Active' },
+        { id: 'c3', code: 'VIPFOUNDER', discount: 100, type: 'percent', maxUses: 10, usedCount: 10, expiryDate: '2026-11-15', status: 'Expired' }
+      ];
+    } catch {
+      return [];
+    }
+  });
+
+  const [newCouponCode, setNewCouponCode] = useState('');
+  const [newCouponDiscount, setNewCouponDiscount] = useState('');
+  const [newCouponType, setNewCouponType] = useState('percent'); // 'percent' | 'fixed'
+  const [newCouponMaxUses, setNewCouponMaxUses] = useState('50');
+  const [newCouponExpiry, setNewCouponExpiry] = useState('');
+  const [copiedCouponId, setCopiedCouponId] = useState(null);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('quantrex_promo_coupons', JSON.stringify(coupons));
+    } catch {}
+  }, [coupons]);
+
+  const handleCreateCoupon = (e) => {
+    e.preventDefault();
+    if (!newCouponCode.trim()) return;
+    const cleanCode = newCouponCode.trim().toUpperCase().replace(/\s+/g, '');
+    if (coupons.some(c => c.code === cleanCode)) {
+      alert('A coupon with this code already exists.');
+      return;
+    }
+    const newCoupon = {
+      id: 'c_' + Date.now(),
+      code: cleanCode,
+      discount: parseFloat(newCouponDiscount) || 10,
+      type: newCouponType,
+      maxUses: parseInt(newCouponMaxUses, 10) || 50,
+      usedCount: 0,
+      expiryDate: newCouponExpiry || '2026-12-31',
+      status: 'Active',
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+    setCoupons(prev => [newCoupon, ...prev]);
+    setNewCouponCode('');
+    setNewCouponDiscount('');
+    setNewCouponExpiry('');
+    showToast(`Coupon ${cleanCode} created successfully!`);
+  };
+
+  const handleToggleCouponStatus = (couponId) => {
+    setCoupons(prev => prev.map(c => {
+      if (c.id === couponId) {
+        const nextStatus = c.status === 'Active' ? 'Inactive' : 'Active';
+        return { ...c, status: nextStatus };
+      }
+      return c;
+    }));
+    showToast('Coupon status updated.');
+  };
+
+  const handleDeleteCoupon = (couponId) => {
+    if (window.confirm('Delete this coupon code?')) {
+      setCoupons(prev => prev.filter(c => c.id !== couponId));
+      showToast('Coupon deleted.');
+    }
+  };
+
+  const handleCopyCoupon = (code, id) => {
+    navigator.clipboard.writeText(code);
+    setCopiedCouponId(id);
+    setTimeout(() => setCopiedCouponId(null), 2000);
+    showToast(`Coupon code ${code} copied!`);
+  };
+
+  const getExpiryInfo = (w) => {
+    if (w.plan?.toLowerCase().includes('lifetime')) {
+      return { text: 'Lifetime Access', days: 9999, badgeClass: 'text-slate-600 dark:text-slate-400 font-medium text-[10.5px]' };
+    }
+    const exp = w.expiryDate || '2026-12-25';
+    const now = new Date();
+    const expDate = new Date(exp);
+    const diffTime = expDate - now;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays <= 0) {
+      return { text: 'Expired', days: diffDays, badgeClass: 'text-rose-600 dark:text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-md font-semibold text-[10px]' };
+    }
+    if (diffDays <= 5) {
+      return { text: `${diffDays} days left`, days: diffDays, badgeClass: 'text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md font-semibold text-[10px]' };
+    }
+    return { text: `${diffDays} days left`, days: diffDays, badgeClass: 'text-slate-600 dark:text-slate-400 text-[10.5px]' };
+  };
+
+  const handleToggleSuspendWorkspace = (workspaceId) => {
+    if (workspaceId === 'current_ws') {
+      showToast('Cannot suspend your current live administrative session.');
+      return;
+    }
+    setMockPlatformUsers(prev => prev.map(u => {
+      if (u.id === workspaceId) {
+        const nextSuspended = !u.isSuspended;
+        return {
+          ...u,
+          isSuspended: nextSuspended,
+          status: nextSuspended ? 'Suspended' : 'Active'
+        };
+      }
+      return u;
+    }));
+    showToast('Agency status updated.');
+  };
+
   // Announcement state
   const [annTitle, setAnnTitle] = useState(globalAnnouncement?.title || 'Special Launching Offer: Starter Plan Now Only ৳500');
   const [annMessage, setAnnMessage] = useState(globalAnnouncement?.message || 'Use promo code LAUNCH500 to get instant 50% discount!');
@@ -52,9 +168,11 @@ export default function AdminConsoleView({
       plan: subscription?.planName || (subscription?.status === 'active' ? 'Starter Plan' : '3-Day Free Trial'),
       status: subscription?.status === 'active' ? 'Active' : 'Trial Active',
       signupDate: '2026-10-20',
+      expiryDate: '2026-12-25',
       lastActive: 'Just now (Live)',
       totalSpentBDT: subscription?.price || 400,
       isLiveSession: true,
+      isSuspended: false,
     };
     const rest = mockPlatformUsers.filter(u => u.email !== currentEntry.email);
     return [currentEntry, ...rest];
@@ -272,7 +390,39 @@ export default function AdminConsoleView({
           </span>
         </button>
 
-        
+        <button
+          type="button"
+          onClick={() => setActiveTab('coupons')}
+          className={'px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ' + (
+            activeTab === 'coupons'
+              ? 'bg-amber-500 text-slate-950 shadow-md font-black'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40'
+          )}
+        >
+          <Tag size={14} />
+          <span>Promo &amp; Coupons</span>
+          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-black/10 dark:bg-black/20 text-current">
+            {coupons.filter(c => c.status === 'Active').length}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('payments')}
+          className={'px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ' + (
+            activeTab === 'payments'
+              ? 'bg-amber-500 text-slate-950 shadow-md font-black'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40'
+          )}
+        >
+          <CreditCard size={14} />
+          <span>Payment Desk</span>
+          {pendingPaymentsCount > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500 text-slate-950 font-extrabold">
+              {pendingPaymentsCount}
+            </span>
+          )}
+        </button>
 
         <button
           type="button"
@@ -292,7 +442,18 @@ export default function AdminConsoleView({
           )}
         </button>
 
-        
+        <button
+          type="button"
+          onClick={() => setActiveTab('announcements')}
+          className={'px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ' + (
+            activeTab === 'announcements'
+              ? 'bg-amber-500 text-slate-950 shadow-md font-black'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40'
+          )}
+        >
+          <Bell size={14} />
+          <span>Broadcast</span>
+        </button>
 
         <button
           type="button"
@@ -516,60 +677,242 @@ export default function AdminConsoleView({
                   <th className="pb-3">Owner Contact</th>
                   <th className="pb-3">Plan Tier</th>
                   <th className="pb-3">Status</th>
+                  <th className="pb-3">Subscription Expiry</th>
                   <th className="pb-3">Joined Date</th>
-                  <th className="pb-3">Revenue Paid</th>
                   <th className="pb-3 text-right">Admin Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
-                {filteredWorkspaces.map(w => (
-                  <tr key={w.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
-                    <td className="py-3.5">
-                      <div className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <span className="w-7 h-7 rounded-lg bg-sky-500/10 text-sky-500 flex items-center justify-center font-bold text-xs shrink-0">
-                          {w.businessName.charAt(0)}
-                        </span>
-                        <div>
-                          <div>{w.businessName}</div>
-                          <div className="text-[10px] text-slate-400 font-normal">Last active: {w.lastActive}</div>
+                {filteredWorkspaces.map(w => {
+                  const expInfo = getExpiryInfo(w);
+                  const isSuspended = w.status === 'Suspended' || w.isSuspended;
+                  return (
+                    <tr key={w.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                      <td className="py-3.5">
+                        <div className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                          <span className="w-7 h-7 rounded-lg bg-sky-500/10 text-sky-500 flex items-center justify-center font-bold text-xs shrink-0">
+                            {w.businessName.charAt(0)}
+                          </span>
+                          <div>
+                            <div>{w.businessName}</div>
+                            <div className="text-[10px] text-slate-400 font-normal">Last active: {w.lastActive}</div>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="py-3.5 text-slate-600 dark:text-slate-400">
-                      <div>{w.email}</div>
-                      <div className="text-[10px] text-slate-400">{w.ownerName}</div>
-                    </td>
-                    <td className="py-3.5">
-                      <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-[10.5px]">
-                        {w.plan}
-                      </span>
-                    </td>
-                    <td className="py-3.5">
-                      <span className={'px-2 py-0.5 rounded-md text-[10px] font-bold ' + (
-                        w.status === 'Active'
-                          ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                          : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
-                      )}>
-                        ● {w.status}
-                      </span>
-                    </td>
-                    <td className="py-3.5 text-slate-500 dark:text-slate-400">{w.signupDate}</td>
-                    <td className="py-3.5 font-bold text-slate-900 dark:text-white">
-                      ৳{(w.totalSpentBDT || 0).toLocaleString()}
-                    </td>
-                    <td className="py-3.5 text-right">
-                      <button
-                        type="button"
-                        onClick={() => handleQuickUpgradeWorkspace(w.id)}
-                        className="px-3 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500 text-amber-600 hover:text-slate-950 font-bold text-[11px] transition-all cursor-pointer mr-1.5"
-                      >
-                        Grant Starter Plan
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="py-3.5 text-slate-600 dark:text-slate-400">
+                        <div>{w.email}</div>
+                        <div className="text-[10px] text-slate-400">{w.ownerName}</div>
+                      </td>
+                      <td className="py-3.5">
+                        <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-[10.5px]">
+                          {w.plan}
+                        </span>
+                      </td>
+                      <td className="py-3.5">
+                        <span className={'px-2 py-0.5 rounded-md text-[10px] font-bold ' + (
+                          isSuspended
+                            ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                            : w.status === 'Active'
+                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                            : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                        )}>
+                          ● {isSuspended ? 'Suspended' : w.status}
+                        </span>
+                      </td>
+                      <td className="py-3.5">
+                        <div className="text-slate-800 dark:text-slate-200 font-medium text-[11px]">
+                          {w.expiryDate || '2026-12-25'}
+                        </div>
+                        <div className="mt-0.5">
+                          <span className={expInfo.badgeClass}>{expInfo.text}</span>
+                        </div>
+                      </td>
+                      <td className="py-3.5 text-slate-500 dark:text-slate-400">{w.signupDate}</td>
+                      <td className="py-3.5 text-right space-x-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleQuickUpgradeWorkspace(w.id)}
+                          className="px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500 text-amber-700 hover:text-slate-950 font-bold text-[10.5px] transition-all cursor-pointer"
+                        >
+                          Upgrade Plan
+                        </button>
+                        {!w.isLiveSession && (
+                          <button
+                            type="button"
+                            onClick={() => handleToggleSuspendWorkspace(w.id)}
+                            className={'px-2.5 py-1 rounded-lg border text-[10.5px] font-bold transition-all cursor-pointer ' + (
+                              isSuspended
+                                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 hover:bg-emerald-500 hover:text-white'
+                                : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-rose-600 hover:border-rose-300'
+                            )}
+                          >
+                            {isSuspended ? 'Activate' : 'Suspend'}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* --- TAB: PROMO & COUPONS --- */}
+      {activeTab === 'coupons' && (
+        <div className="space-y-4">
+          <div className="p-5 rounded-2xl bg-white dark:bg-[#0c121e] border border-slate-200/90 dark:border-slate-800/90 space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Promo &amp; Discount Coupons</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Create and manage promotional discount vouchers for client agency subscriptions</p>
+              </div>
+              <span className="text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-3 py-1 rounded-lg border border-amber-500/20">
+                Active Codes: {coupons.filter(c => c.status === 'Active').length}
+              </span>
+            </div>
+
+            {/* CREATE COUPON FORM */}
+            <form onSubmit={handleCreateCoupon} className="p-4 rounded-xl bg-slate-50 dark:bg-[#070b13] border border-slate-200 dark:border-slate-800 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
+                  Coupon Code
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newCouponCode}
+                  onChange={(e) => setNewCouponCode(e.target.value.toUpperCase())}
+                  placeholder="E.g., PROMO50"
+                  className="w-full px-3 py-2 bg-white dark:bg-[#0c121e] border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-mono font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
+                  Discount Type
+                </label>
+                <select
+                  value={newCouponType}
+                  onChange={(e) => setNewCouponType(e.target.value)}
+                  className="w-full px-3 py-2 bg-white dark:bg-[#0c121e] border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none"
+                >
+                  <option value="percent">Percentage (% Off)</option>
+                  <option value="fixed">Fixed BDT (৳ Off)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
+                  Discount Value {newCouponType === 'percent' ? '(%)' : '(৳)'}
+                </label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  max={newCouponType === 'percent' ? 100 : 5000}
+                  value={newCouponDiscount}
+                  onChange={(e) => setNewCouponDiscount(e.target.value)}
+                  placeholder={newCouponType === 'percent' ? '50' : '200'}
+                  className="w-full px-3 py-2 bg-white dark:bg-[#0c121e] border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
+                  Max Uses
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={newCouponMaxUses}
+                  onChange={(e) => setNewCouponMaxUses(e.target.value)}
+                  placeholder="50"
+                  className="w-full px-3 py-2 bg-white dark:bg-[#0c121e] border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <button
+                  type="submit"
+                  className="w-full py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-xs transition-all cursor-pointer inline-flex items-center justify-center gap-1.5"
+                >
+                  <Plus size={14} />
+                  <span>Create Coupon</span>
+                </button>
+              </div>
+            </form>
+
+            {/* COUPONS LIST TABLE */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                    <th className="pb-3">Coupon Code</th>
+                    <th className="pb-3">Discount Benefit</th>
+                    <th className="pb-3">Redemptions</th>
+                    <th className="pb-3">Status</th>
+                    <th className="pb-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
+                  {coupons.map(c => (
+                    <tr key={c.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                      <td className="py-3.5 font-bold">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-slate-900 dark:text-white text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md border border-slate-200 dark:border-slate-700">
+                            {c.code}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyCoupon(c.code, c.id)}
+                            className="p-1 rounded text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
+                            title="Copy code"
+                          >
+                            {copiedCouponId === c.id ? <Check size={13} className="text-emerald-500" /> : <Copy size={13} />}
+                          </button>
+                        </div>
+                      </td>
+                      <td className="py-3.5">
+                        <span className="font-bold text-slate-900 dark:text-white">
+                          {c.type === 'percent' ? `${c.discount}% OFF` : `৳${c.discount} OFF`}
+                        </span>
+                      </td>
+                      <td className="py-3.5 text-slate-600 dark:text-slate-400">
+                        {c.usedCount} / {c.maxUses} used
+                      </td>
+                      <td className="py-3.5">
+                        <span className={'px-2 py-0.5 rounded-md text-[10px] font-bold ' + (
+                          c.status === 'Active'
+                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                            : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                        )}>
+                          ● {c.status}
+                        </span>
+                      </td>
+                      <td className="py-3.5 text-right space-x-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleCouponStatus(c.id)}
+                          className="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-[10.5px] font-bold transition-all cursor-pointer"
+                        >
+                          {c.status === 'Active' ? 'Deactivate' : 'Activate'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteCoupon(c.id)}
+                          className="p-1 rounded-lg text-slate-400 hover:text-rose-500 transition-colors inline-flex items-center"
+                          title="Delete coupon"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

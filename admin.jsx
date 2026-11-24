@@ -158,7 +158,35 @@ function AdminPortalApp() {
   const [mockPlatformUsers, setMockPlatformUsers] = useState(() => {
     try {
       const saved = localStorage.getItem('quantrex_platform_users');
-      return saved ? JSON.parse(saved) : [];
+      if (saved) return JSON.parse(saved);
+      return [
+        {
+          id: 'ws_demo_1',
+          businessName: 'Apex Digital Agency',
+          email: 'contact@apexdigital.com',
+          ownerName: 'Tanvir Ahmed',
+          plan: 'Starter Plan (৳500/mo)',
+          status: 'Active',
+          signupDate: '2026-10-24',
+          expiryDate: '2026-12-24',
+          lastActive: '2 hours ago',
+          totalSpentBDT: 1500,
+          isSuspended: false
+        },
+        {
+          id: 'ws_demo_2',
+          businessName: 'NextWave Media BD',
+          email: 'info@nextwavebd.com',
+          ownerName: 'Sabbir Hossain',
+          plan: 'Starter Plan (৳500/mo)',
+          status: 'Active',
+          signupDate: '2026-11-01',
+          expiryDate: '2026-12-05',
+          lastActive: 'Yesterday',
+          totalSpentBDT: 500,
+          isSuspended: false
+        }
+      ];
     } catch {
       return [];
     }
