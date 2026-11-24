@@ -888,17 +888,14 @@ function AdminPortalApp() {
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-rose-700 flex items-center justify-center shadow-md shadow-red-500/20">
             <Crown size={22} className="text-white stroke-[2.5]" />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-black text-base sm:text-lg tracking-tight text-slate-900 dark:text-white">Quantrex Master Portal</span>
-              <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-wider uppercase bg-rose-500/10 text-rose-600 dark:bg-red-500/15 dark:text-red-400 border border-rose-500/20 dark:border-red-500/30">
-                <Sparkles size={10} /> Root Executive
-              </span>
-            </div>
-            <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <span className="font-black text-base sm:text-lg tracking-tight text-slate-900 dark:text-white">
+              Quantrex Master Portal
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Live System: {MASTER_EMAIL}</span>
-            </div>
+              <span>Live System</span>
+            </span>
           </div>
         </div>
 
