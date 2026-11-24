@@ -221,12 +221,12 @@ export default function AdminConsoleView({
               Quantrex Master Control
             </h2>
             <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Logged in as: <strong className="text-slate-700 dark:text-slate-200 font-semibold">{currentUserEmail || 'veloxadsphere@gmail.com'}</strong> • Connected to Supabase Engine
+              Logged in as: <strong className="text-slate-700 dark:text-slate-200 font-semibold">{currentUserEmail || 'veloxadsphere@gmail.com'}</strong>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-col items-start md:items-end gap-1">
           <button
             type="button"
             onClick={onExitAdmin}
@@ -235,6 +235,9 @@ export default function AdminConsoleView({
             <BriefcaseBusiness size={14} />
             <span>Exit to Workspace View</span>
           </button>
+          <div className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">
+            Connected to Supabase Engine
+          </div>
         </div>
       </div>
 
