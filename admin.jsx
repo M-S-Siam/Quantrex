@@ -888,14 +888,14 @@ function AdminPortalApp() {
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-rose-700 flex items-center justify-center shadow-md shadow-red-500/20">
             <Crown size={22} className="text-white stroke-[2.5]" />
           </div>
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <span className="font-black text-base sm:text-lg tracking-tight text-slate-900 dark:text-white">
+          <div className="flex items-center gap-3">
+            <span className="font-black text-base sm:text-lg tracking-tight text-slate-900 dark:text-white leading-none">
               Quantrex Master Portal
             </span>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               <span>Live System</span>
-            </span>
+            </div>
           </div>
         </div>
 
