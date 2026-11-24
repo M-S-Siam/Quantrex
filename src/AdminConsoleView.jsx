@@ -226,7 +226,7 @@ export default function AdminConsoleView({
           </div>
         </div>
 
-        <div className="flex flex-col items-start md:items-end gap-1">
+        <div className="flex flex-col items-center gap-1">
           <button
             type="button"
             onClick={onExitAdmin}
@@ -235,7 +235,7 @@ export default function AdminConsoleView({
             <BriefcaseBusiness size={14} />
             <span>Exit to Workspace View</span>
           </button>
-          <div className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">
+          <div className="text-[11px] text-slate-400 dark:text-slate-500 font-medium text-center">
             Connected to Supabase Engine
           </div>
         </div>
