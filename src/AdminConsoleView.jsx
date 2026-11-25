@@ -6,7 +6,7 @@ import {
   Bell, Sparkles, ShieldCheck, UserPlus, Trash2, ArrowRight,
   ExternalLink, Check, Copy, SlidersHorizontal, BriefcaseBusiness,
   BarChart3, RefreshCw, X, ChevronRight, Tag, Plus, Percent, Calendar,
-  FileSpreadsheet, Download, Database, Clock, Activity, Power, Wrench
+  FileSpreadsheet, Download, Database, Clock, Activity, Power, Wrench, Pause
 } from 'lucide-react';
 
 export default function AdminConsoleView({
@@ -454,16 +454,18 @@ export default function AdminConsoleView({
 
   const handleSaveAnnouncement = (e) => {
     e.preventDefault();
+    setAnnEnabled(true);
     const annPayload = {
       title: annTitle.trim(),
       message: annMessage.trim(),
       type: annType,
-      enabled: annEnabled,
+      enabled: true,
       updatedAt: new Date().toISOString()
     };
     setGlobalAnnouncement(annPayload);
     if (onCloudSave) onCloudSave('global_announcement', annPayload);
-    showToast('Global announcement broadcast saved!');
+    logAuditEvent('BROADCAST', `Published broadcast: ${annTitle.trim()}`);
+    showToast('Broadcast saved and published live!');
   };
 
   const handleAddAdmin = (e) => {
@@ -1540,48 +1542,55 @@ export default function AdminConsoleView({
 
       {/* --- TAB 5: BROADCAST NOTICES --- */}
       {activeTab === 'announcements' && (
-        <div className="p-5 rounded-2xl bg-white dark:bg-[#0c121e] border border-slate-200/90 dark:border-slate-800/90 space-y-4">
+        <div className="p-5 rounded-2xl bg-white dark:bg-[#0c121e] border border-slate-200/90 dark:border-slate-800/90 space-y-5">
           <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Global Announcement Banner</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Broadcast an instant alert or promotional offer across all client workspaces</p>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Platform Broadcast</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Publish system notices, alerts, or promotions to all active workspaces</p>
           </div>
 
           <form onSubmit={handleSaveAnnouncement} className="space-y-4">
             <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-[#070b13] border border-slate-200 dark:border-slate-800">
               <div>
                 <div className="text-xs font-bold text-slate-900 dark:text-white">Broadcast Status</div>
-                <div className="text-[11px] text-slate-400">When enabled, every user sees this banner on their dashboard</div>
+                <div className="text-[11px] text-slate-500 dark:text-slate-400">Display this notice across all client dashboards</div>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  const next = !annEnabled;
-                  setAnnEnabled(next);
-                  const annPayload = {
-                    title: annTitle.trim(),
-                    message: annMessage.trim(),
-                    type: annType,
-                    enabled: next,
-                    updatedAt: new Date().toISOString()
-                  };
-                  setGlobalAnnouncement(annPayload);
-                  if (onCloudSave) onCloudSave('global_announcement', annPayload);
-                  showToast(next ? 'Broadcast notice is now LIVE!' : 'Broadcast notice disabled.');
-                }}
-                className={'px-4 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ' + (
-                  annEnabled
-                    ? 'bg-emerald-600 text-white shadow-sm'
-                    : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+              <div className="flex items-center gap-3">
+                <div className="inline-flex items-center gap-1.5 text-xs font-semibold">
+                  <span className={`w-2 h-2 rounded-full ${annEnabled ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
+                  <span className={annEnabled ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}>
+                    {annEnabled ? 'Broadcasting Live' : 'Disabled'}
+                  </span>
+                </div>
+                {annEnabled && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAnnEnabled(false);
+                      const annPayload = {
+                        title: annTitle.trim(),
+                        message: annMessage.trim(),
+                        type: annType,
+                        enabled: false,
+                        updatedAt: new Date().toISOString()
+                      };
+                      setGlobalAnnouncement(annPayload);
+                      if (onCloudSave) onCloudSave('global_announcement', annPayload);
+                      logAuditEvent('BROADCAST', 'Paused active broadcast notice');
+                      showToast('Broadcast paused and disabled.');
+                    }}
+                    className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                    title="Pause & disable broadcast"
+                  >
+                    <Pause size={14} />
+                  </button>
                 )}
-              >
-                {annEnabled ? '● Broadcasting Live' : '○ Disabled'}
-              </button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
-                  Banner Type / Color Tone
+                  Notice Type
                 </label>
                 <select
                   value={annType}
@@ -1596,7 +1605,7 @@ export default function AdminConsoleView({
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
-                  Banner Headline
+                  Headline
                 </label>
                 <input
                   type="text"
@@ -1611,29 +1620,29 @@ export default function AdminConsoleView({
 
             <div>
               <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
-                Detailed Message / Promo Instructions
+                Message
               </label>
               <textarea
                 required
                 rows={3}
                 value={annMessage}
                 onChange={(e) => setAnnMessage(e.target.value)}
-                placeholder="Describe offer, coupon code, or maintenance schedule..."
+                placeholder="Write the notice details here..."
                 className="w-full bg-white dark:bg-[#090d16] border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-2 text-xs"
               />
             </div>
 
-            {/* LIVE PREVIEW BOX */}
+            {/* PREVIEW BOX */}
             <div>
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                Live Preview (What Users See)
+              <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+                Preview
               </label>
-              <div className={'p-3.5 rounded-xl border flex items-center justify-between gap-3 ' + (
+              <div className={'p-3.5 rounded-xl border flex items-center gap-3 ' + (
                 annType === 'promo'
                   ? 'bg-amber-500/10 border-amber-500/30 text-amber-950 dark:text-amber-200'
                   : annType === 'warning'
                     ? 'bg-rose-500/10 border-rose-500/30 text-rose-950 dark:text-rose-200'
-                    : 'bg-sky-500/10 border-sky-500/30 text-sky-950 dark:text-sky-200'
+                    : 'bg-slate-100 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100'
               )}>
                 <div className="flex items-center gap-2.5">
                   {annType === 'promo' && <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0" />}
@@ -1646,18 +1655,15 @@ export default function AdminConsoleView({
                     <div className="text-[11px] opacity-90">{annMessage || 'Message will appear here...'}</div>
                   </div>
                 </div>
-                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-black/10">
-                  {annEnabled ? 'Live' : 'Draft'}
-                </span>
               </div>
             </div>
 
             <div className="flex justify-end pt-2">
               <button
                 type="submit"
-                className="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md transition-all cursor-pointer"
+                className="px-7 py-2.5 rounded-lg bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold text-xs shadow-xs transition-all cursor-pointer"
               >
-                Save &amp; Broadcast Announcement
+                Save
               </button>
             </div>
           </form>
