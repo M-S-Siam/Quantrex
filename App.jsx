@@ -1605,16 +1605,19 @@ export default function AdLedgerApp() {
   return (
     <>      {globalAnnouncement?.enabled && dismissedBroadcastAt !== (globalAnnouncement?.updatedAt || globalAnnouncement?.title) && (() => {
         const bType = globalAnnouncement.type || 'promo';
-        const topAccent =
+        const topAccentColor =
           bType === 'warning'
-            ? 'border-t-rose-500'
+            ? '#f43f5e'
             : bType === 'info'
-            ? 'border-t-sky-500'
-            : 'border-t-amber-500';
+            ? '#0ea5e9'
+            : '#f59e0b';
         const iconEmoji = bType === 'warning' ? '⚡' : bType === 'info' ? 'ℹ️' : '🎉';
         return (
-          <div className="w-full px-3 pt-2 pb-1 bg-[#ebf0f7] dark:bg-[#06090e] z-[9999] relative font-sans">
-            <div className={`w-full px-10 py-2.5 text-xs bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 border-t-2 rounded-xl flex items-center justify-center relative shadow-sm ${topAccent}`}>
+          <div className="w-full px-4 pt-2.5 pb-1 bg-[#ebf0f7] dark:bg-[#06090e] z-[9999] relative font-sans">
+            <div
+              style={{ borderTopColor: topAccentColor, borderTopWidth: '2px' }}
+              className="w-full px-10 py-2.5 text-xs bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-center relative shadow-sm"
+            >
               <div className="flex items-center justify-center gap-2.5 text-center flex-wrap">
                 {bType === 'promo' && (
                   <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0" />
