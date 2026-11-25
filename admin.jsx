@@ -197,7 +197,7 @@ function AdminPortalApp() {
     try {
       const saved = localStorage.getItem('quantrex_global_announcement');
       return saved ? JSON.parse(saved) : {
-        enabled: true,
+        enabled: false,
         title: 'Quantrex Enterprise Cloud Active',
         message: 'All core financial automation pipelines operational with real-time sync.',
         type: 'info'
