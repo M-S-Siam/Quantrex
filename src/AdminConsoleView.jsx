@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { PLATFORM_SYNC_SQL } from './lib/platformSync.js';
 import {
   Crown, Users, CreditCard, Coins, Building, TrendingUp,
   AlertCircle, CheckCircle2, Search, Filter, Mail, HelpCircle,
@@ -29,6 +30,9 @@ export default function AdminConsoleView({
   setPaymentQueue,
   supabaseLatency = 38,
   onSyncSupabase,
+  cloudTableMissing = false,
+  cloudSyncedStates = {},
+  onCloudSave,
   autoLockMinutes = 15,
   setAutoLockMinutes,
   onExitAdmin
@@ -94,9 +98,18 @@ export default function AdminConsoleView({
     try {
       localStorage.setItem('quantrex_platform_config', JSON.stringify(platformConfig));
     } catch {}
+    if (onCloudSave) onCloudSave('platform_config', platformConfig);
     logAuditEvent('CONFIG', `Updated pricing config (Starter: ৳${platformConfig.starterPriceBDT}, Trial: ${platformConfig.trialDays}d, Signups: ${platformConfig.allowSignups ? 'Open' : 'Paused'})`);
     showToast('Platform pricing & trial settings saved!');
   };
+
+  useEffect(() => {
+    if (!cloudSyncedStates || Object.keys(cloudSyncedStates).length === 0) return;
+    if (Array.isArray(cloudSyncedStates.promo_coupons)) setCoupons(cloudSyncedStates.promo_coupons);
+    if (cloudSyncedStates.platform_config) setPlatformConfig(cloudSyncedStates.platform_config);
+    if (cloudSyncedStates.maintenance_mode) setMaintenanceMode(!!cloudSyncedStates.maintenance_mode.enabled);
+    if (Array.isArray(cloudSyncedStates.audit_logs)) setAuditLogs(cloudSyncedStates.audit_logs);
+  }, [cloudSyncedStates]);
 
   const handleManualSync = async () => {
     if (!onSyncSupabase) return;
@@ -147,6 +160,7 @@ export default function AdminConsoleView({
     try {
       localStorage.setItem('quantrex_maintenance_mode', next ? 'true' : 'false');
     } catch {}
+    if (onCloudSave) onCloudSave('maintenance_mode', { enabled: next, updatedAt: new Date().toISOString() });
     logAuditEvent('SYSTEM', next ? 'Maintenance mode ENABLED' : 'Maintenance mode DISABLED');
     showToast(next ? '⚠️ Maintenance mode is now active!' : 'System restored to live operation.');
   };
@@ -234,6 +248,10 @@ export default function AdminConsoleView({
     } catch {}
   }, [coupons]);
 
+  const saveCouponsToCloud = (nextCoupons) => {
+    if (onCloudSave) onCloudSave('promo_coupons', nextCoupons);
+  };
+
   const handleCreateCoupon = (e) => {
     e.preventDefault();
     if (!newCouponCode.trim()) return;
@@ -253,7 +271,7 @@ export default function AdminConsoleView({
       status: 'Active',
       createdAt: new Date().toISOString().split('T')[0]
     };
-    setCoupons(prev => [newCoupon, ...prev]);
+    setCoupons(prev => { const next = [newCoupon, ...prev]; saveCouponsToCloud(next); return next; });
     setNewCouponCode('');
     setNewCouponDiscount('');
     setNewCouponExpiry('');
@@ -261,19 +279,23 @@ export default function AdminConsoleView({
   };
 
   const handleToggleCouponStatus = (couponId) => {
-    setCoupons(prev => prev.map(c => {
-      if (c.id === couponId) {
-        const nextStatus = c.status === 'Active' ? 'Inactive' : 'Active';
-        return { ...c, status: nextStatus };
-      }
-      return c;
-    }));
+    setCoupons(prev => {
+      const next = prev.map(c => {
+        if (c.id === couponId) {
+          const nextStatus = c.status === 'Active' ? 'Inactive' : 'Active';
+          return { ...c, status: nextStatus };
+        }
+        return c;
+      });
+      saveCouponsToCloud(next);
+      return next;
+    });
     showToast('Coupon status updated.');
   };
 
   const handleDeleteCoupon = (couponId) => {
     if (window.confirm('Delete this coupon code?')) {
-      setCoupons(prev => prev.filter(c => c.id !== couponId));
+      setCoupons(prev => { const next = prev.filter(c => c.id !== couponId); saveCouponsToCloud(next); return next; });
       showToast('Coupon deleted.');
     }
   };
@@ -309,17 +331,27 @@ export default function AdminConsoleView({
       showToast('Cannot suspend your current live administrative session.');
       return;
     }
-    setMockPlatformUsers(prev => prev.map(u => {
-      if (u.id === workspaceId) {
-        const nextSuspended = !u.isSuspended;
-        return {
-          ...u,
-          isSuspended: nextSuspended,
-          status: nextSuspended ? 'Suspended' : 'Active'
-        };
+    setMockPlatformUsers(prev => {
+      const next = prev.map(u => {
+        if (u.id === workspaceId) {
+          const nextSuspended = !u.isSuspended;
+          return {
+            ...u,
+            isSuspended: nextSuspended,
+            status: nextSuspended ? 'Suspended' : 'Active'
+          };
+        }
+        return u;
+      });
+      if (onCloudSave) {
+        const overrides = {};
+        next.forEach(u => {
+          overrides[u.id] = { isSuspended: !!u.isSuspended, status: u.status, plan: u.plan, expiryDate: u.expiryDate };
+        });
+        onCloudSave('workspace_overrides', overrides);
       }
-      return u;
-    }));
+      return next;
+    });
     showToast('Agency status updated.');
   };
 
@@ -422,13 +454,15 @@ export default function AdminConsoleView({
 
   const handleSaveAnnouncement = (e) => {
     e.preventDefault();
-    setGlobalAnnouncement({
+    const annPayload = {
       title: annTitle.trim(),
       message: annMessage.trim(),
       type: annType,
       enabled: annEnabled,
       updatedAt: new Date().toISOString()
-    });
+    };
+    setGlobalAnnouncement(annPayload);
+    if (onCloudSave) onCloudSave('global_announcement', annPayload);
     showToast('Global announcement broadcast saved!');
   };
 
@@ -468,17 +502,28 @@ export default function AdminConsoleView({
   };
 
   const handleQuickUpgradeWorkspace = (workspaceId) => {
-    setMockPlatformUsers(prev => prev.map(u => {
-      if (u.id === workspaceId) {
-        return {
-          ...u,
-          plan: 'Starter Plan (৳500/mo)',
-          status: 'Active',
-          totalSpentBDT: (u.totalSpentBDT || 0) + 500,
-        };
+    setMockPlatformUsers(prev => {
+      const next = prev.map(u => {
+        if (u.id === workspaceId) {
+          return {
+            ...u,
+            plan: 'Starter Plan (৳500/mo)',
+            status: 'Active',
+            isSuspended: false,
+            totalSpentBDT: (u.totalSpentBDT || 0) + 500,
+          };
+        }
+        return u;
+      });
+      if (onCloudSave) {
+        const overrides = {};
+        next.forEach(u => {
+          overrides[u.id] = { isSuspended: !!u.isSuspended, status: u.status, plan: u.plan, expiryDate: u.expiryDate };
+        });
+        onCloudSave('workspace_overrides', overrides);
       }
-      return u;
-    }));
+      return next;
+    });
     if (workspaceId === 'current_ws') {
       setSubscription(prev => ({
         ...prev,
@@ -1752,6 +1797,47 @@ export default function AdminConsoleView({
                 </button>
               </div>
             </div>
+            {/* LIVE CLOUD SYNC STATUS / 1-TIME SQL SETUP */}
+            {cloudTableMissing ? (
+              <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div>
+                    <div className="text-xs font-bold text-amber-900 dark:text-amber-300">1-Time Supabase Cloud Sync Table Setup Required</div>
+                    <div className="text-[11px] text-amber-800 dark:text-amber-400 mt-0.5">
+                      Run this SQL once in your Supabase SQL Editor so all updates (Maintenance, Coupons, Broadcasts, Suspensions) sync live to every user automatically.
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(PLATFORM_SYNC_SQL);
+                        showToast('Supabase SQL copied to clipboard!');
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs cursor-pointer inline-flex items-center gap-1.5"
+                    >
+                      <Copy size={12} />
+                      <span>Copy SQL</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleManualSync}
+                      className="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs cursor-pointer"
+                    >
+                      Verify Sync
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                  <CheckCircle2 size={15} />
+                  <span>Live Cloud Sync Active — All changes push automatically to web &amp; desktop users</span>
+                </div>
+              </div>
+            )}
+
             {/* AUTO-LOCK SECURITY SETTING */}
             <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#070b13] border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>

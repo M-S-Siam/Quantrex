@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import AdminConsoleView from './src/AdminConsoleView.jsx';
 import { supabase } from './src/lib/supabase.js';
+import { fetchAllPlatformStates, savePlatformState } from './src/lib/platformSync.js';
 import { 
   ShieldAlert, User, Key, Lock, Eye, EyeOff, ArrowRight, ArrowLeft,
   Crown, ExternalLink, Sun, Moon, Sparkles, RefreshCw, CheckCircle2,
@@ -251,6 +252,8 @@ function AdminPortalApp() {
 
   // Live Supabase Telemetry & Auto-Lock State
   const [supabaseLatency, setSupabaseLatency] = useState(38);
+  const [cloudTableMissing, setCloudTableMissing] = useState(false);
+  const [cloudSyncedStates, setCloudSyncedStates] = useState({});
   const [autoLockMinutes, setAutoLockMinutes] = useState(() => {
     try {
       const saved = localStorage.getItem('quantrex_auto_lock_mins');
@@ -267,17 +270,39 @@ function AdminPortalApp() {
   const syncLiveSupabase = async () => {
     const start = performance.now();
     try {
-      const { data, error } = await supabase
-        .from('workspaces')
-        .select('id, name, created_at')
-        .limit(50);
+      const [wsRes, platformRes] = await Promise.all([
+        supabase.from('workspaces').select('id, name, created_at').limit(50),
+        fetchAllPlatformStates()
+      ]);
+
       const elapsed = Math.max(12, Math.round(performance.now() - start));
       setSupabaseLatency(elapsed);
+      setCloudTableMissing(!!platformRes.tableMissing);
 
-      if (!error && Array.isArray(data) && data.length > 0) {
+      const states = platformRes.states || {};
+      if (Object.keys(states).length > 0) {
+        setCloudSyncedStates(states);
+        if (states.global_announcement) setGlobalAnnouncement(states.global_announcement);
+        if (Array.isArray(states.payment_queue)) setPaymentQueue(states.payment_queue);
+        if (Array.isArray(states.support_tickets)) setSupportTickets(states.support_tickets);
+        if (Array.isArray(states.admin_roles)) setAdminRoles(states.admin_roles);
+        if (Array.isArray(states.promo_coupons)) {
+          try { localStorage.setItem('quantrex_promo_coupons', JSON.stringify(states.promo_coupons)); } catch {}
+        }
+        if (states.platform_config) {
+          try { localStorage.setItem('quantrex_platform_config', JSON.stringify(states.platform_config)); } catch {}
+        }
+        if (states.maintenance_mode) {
+          try { localStorage.setItem('quantrex_maintenance_mode', states.maintenance_mode.enabled ? 'true' : 'false'); } catch {}
+        }
+      }
+
+      const overrides = states.workspace_overrides || {};
+      if (!wsRes.error && Array.isArray(wsRes.data)) {
         setMockPlatformUsers(prev => {
           const existingIds = new Set(prev.map(u => u.id));
-          const newEntries = data
+          const merged = prev.map(u => overrides[u.id] ? { ...u, ...overrides[u.id] } : u);
+          const newEntries = wsRes.data
             .filter(ws => !existingIds.has(ws.id))
             .map(ws => ({
               id: ws.id,
@@ -290,9 +315,10 @@ function AdminPortalApp() {
               expiryDate: '2026-12-28',
               lastActive: 'Synced from Cloud',
               totalSpentBDT: 500,
-              isSuspended: false
+              isSuspended: false,
+              ...(overrides[ws.id] || {})
             }));
-          return newEntries.length > 0 ? [...prev, ...newEntries] : prev;
+          return newEntries.length > 0 ? [...merged, ...newEntries] : merged;
         });
       }
     } catch {
@@ -1110,6 +1136,9 @@ function AdminPortalApp() {
           setPaymentQueue={setPaymentQueue}
           supabaseLatency={supabaseLatency}
           onSyncSupabase={syncLiveSupabase}
+          cloudTableMissing={cloudTableMissing}
+          cloudSyncedStates={cloudSyncedStates}
+          onCloudSave={savePlatformState}
           autoLockMinutes={autoLockMinutes}
           setAutoLockMinutes={setAutoLockMinutes}
           onExitAdmin={handleLock}

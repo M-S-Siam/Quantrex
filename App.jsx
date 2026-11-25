@@ -15,6 +15,7 @@ import {
 import AdminConsoleView from './src/AdminConsoleView.jsx';
 import CreateWorkspaceModal from './src/CreateWorkspaceModal.jsx';
 import { supabase } from './src/lib/supabase.js';
+import { fetchAllPlatformStates } from './src/lib/platformSync.js';
 import { QUANTREX_LOGO_DATA_URL } from './src/quantrex-logo.js';
 import { QUANTREX_WORDMARK_DATA_URL } from './src/quantrex-wordmark.js';
 import {
@@ -607,6 +608,59 @@ export default function AdLedgerApp() {
     message: 'Use promo code LAUNCH500 during checkout to get 50% discount on Starter Plan!',
     type: 'promo'
   });
+
+  // Live Admin Cloud Sync (Maintenance, Broadcast, Pricing, Coupons, Workspace Status)
+  const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
+  const [isWorkspaceSuspended, setIsWorkspaceSuspended] = useState(false);
+  const [dismissedBroadcastAt, setDismissedBroadcastAt] = useState('');
+
+  useEffect(() => {
+    let mounted = true;
+    const syncAdminCloudState = async () => {
+      try {
+        const { states, tableMissing } = await fetchAllPlatformStates();
+        if (!mounted || tableMissing || !states) return;
+
+        if (states.maintenance_mode !== undefined) {
+          setIsMaintenanceMode(!!states.maintenance_mode?.enabled);
+        }
+        if (states.global_announcement) {
+          setGlobalAnnouncement(states.global_announcement);
+        }
+        if (Array.isArray(states.promo_coupons)) {
+          try { localStorage.setItem('quantrex_promo_coupons', JSON.stringify(states.promo_coupons)); } catch {}
+        }
+        if (states.platform_config) {
+          try { localStorage.setItem('quantrex_platform_config', JSON.stringify(states.platform_config)); } catch {}
+        }
+        if (states.workspace_overrides && activeWsId) {
+          const ov = states.workspace_overrides[activeWsId];
+          if (ov) {
+            setIsWorkspaceSuspended(!!ov.isSuspended || ov.status === 'Suspended');
+            if (ov.plan && ov.plan.toLowerCase().includes('starter') && !ov.isSuspended) {
+              setSubscription(prev => prev?.status === 'active' ? prev : {
+                ...prev,
+                status: 'active',
+                plan: 'starter_monthly',
+                planName: 'Starter Plan'
+              });
+            }
+          } else {
+            setIsWorkspaceSuspended(false);
+          }
+        }
+      } catch {}
+    };
+
+    syncAdminCloudState();
+    const intervalId = setInterval(syncAdminCloudState, 60000);
+    window.addEventListener('focus', syncAdminCloudState);
+    return () => {
+      mounted = false;
+      clearInterval(intervalId);
+      window.removeEventListener('focus', syncAdminCloudState);
+    };
+  }, [activeWsId]);
 
   const [mockPlatformUsers, setMockPlatformUsers] = useLocalStorage('quantrex_platform_directory', [
     {
@@ -1503,8 +1557,70 @@ export default function AdLedgerApp() {
     }
   };
 
+  if (isMaintenanceMode) {
+    return (
+      <div className="min-h-screen w-full bg-slate-50 dark:bg-[#06090e] flex items-center justify-center p-6 font-sans">
+        <div className="max-w-md w-full bg-white dark:bg-[#0c121e] border border-slate-200 dark:border-slate-800 rounded-3xl p-8 text-center shadow-xl space-y-4">
+          <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto">
+            <RefreshCw size={24} className="animate-spin" />
+          </div>
+          <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Scheduled System Upgrade</h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+            Quantrex is currently undergoing a brief scheduled maintenance to deploy performance improvements. All your agency data is completely safe.
+          </p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="px-5 py-2.5 rounded-xl bg-slate-900 dark:bg-amber-500 text-white dark:text-slate-950 font-bold text-xs cursor-pointer"
+          >
+            Check Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isWorkspaceSuspended) {
+    return (
+      <div className="min-h-screen w-full bg-slate-50 dark:bg-[#06090e] flex items-center justify-center p-6 font-sans">
+        <div className="max-w-md w-full bg-white dark:bg-[#0c121e] border border-rose-200 dark:border-rose-900/50 rounded-3xl p-8 text-center shadow-xl space-y-4">
+          <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto">
+            <Lock size={24} />
+          </div>
+          <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Workspace Access Paused</h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+            Access to this agency workspace has been temporarily suspended by Quantrex Administration. Please renew your subscription or contact support.
+          </p>
+          <a
+            href="mailto:mdshahariar307@gmail.com?subject=Quantrex%20Workspace%20Reactivation"
+            className="inline-block px-5 py-2.5 rounded-xl bg-rose-600 text-white font-bold text-xs"
+          >
+            Contact Quantrex Support
+          </a>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <>      <style>{`
+    <>      {globalAnnouncement?.enabled && dismissedBroadcastAt !== (globalAnnouncement?.updatedAt || globalAnnouncement?.title) && (
+        <div className="w-full bg-slate-900 text-white px-4 py-2 text-xs flex items-center justify-between gap-3 border-b border-slate-800 z-[9999] relative">
+          <div className="flex items-center gap-2 min-w-0">
+            <Bell size={13} className="text-amber-400 shrink-0" />
+            <span className="font-bold truncate">{globalAnnouncement.title}:</span>
+            <span className="text-slate-300 truncate">{globalAnnouncement.message}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setDismissedBroadcastAt(globalAnnouncement?.updatedAt || globalAnnouncement?.title)}
+            className="text-slate-400 hover:text-white p-0.5 shrink-0 cursor-pointer"
+            title="Dismiss notice"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
+      <style>{`
         /* 100% AUTHENTIC MASTER NEUMORPHIC SOFT-UI DESIGN SYSTEM (LIGHT) */
         .adl-shell:not(.dark) {
           background: #ebf0f7 !important;
