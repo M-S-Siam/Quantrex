@@ -614,54 +614,6 @@ export default function AdLedgerApp() {
   const [isWorkspaceSuspended, setIsWorkspaceSuspended] = useState(false);
   const [dismissedBroadcastAt, setDismissedBroadcastAt] = useState('');
 
-  useEffect(() => {
-    let mounted = true;
-    const syncAdminCloudState = async () => {
-      try {
-        const { states, tableMissing } = await fetchAllPlatformStates();
-        if (!mounted || tableMissing || !states) return;
-
-        if (states.maintenance_mode !== undefined) {
-          setIsMaintenanceMode(!!states.maintenance_mode?.enabled);
-        }
-        if (states.global_announcement) {
-          setGlobalAnnouncement(states.global_announcement);
-        }
-        if (Array.isArray(states.promo_coupons)) {
-          try { localStorage.setItem('quantrex_promo_coupons', JSON.stringify(states.promo_coupons)); } catch {}
-        }
-        if (states.platform_config) {
-          try { localStorage.setItem('quantrex_platform_config', JSON.stringify(states.platform_config)); } catch {}
-        }
-        if (states.workspace_overrides && activeWsId) {
-          const ov = states.workspace_overrides[activeWsId];
-          if (ov) {
-            setIsWorkspaceSuspended(!!ov.isSuspended || ov.status === 'Suspended');
-            if (ov.plan && ov.plan.toLowerCase().includes('starter') && !ov.isSuspended) {
-              setSubscription(prev => prev?.status === 'active' ? prev : {
-                ...prev,
-                status: 'active',
-                plan: 'starter_monthly',
-                planName: 'Starter Plan'
-              });
-            }
-          } else {
-            setIsWorkspaceSuspended(false);
-          }
-        }
-      } catch {}
-    };
-
-    syncAdminCloudState();
-    const intervalId = setInterval(syncAdminCloudState, 60000);
-    window.addEventListener('focus', syncAdminCloudState);
-    return () => {
-      mounted = false;
-      clearInterval(intervalId);
-      window.removeEventListener('focus', syncAdminCloudState);
-    };
-  }, [activeWsId]);
-
   const [mockPlatformUsers, setMockPlatformUsers] = useLocalStorage('quantrex_platform_directory', [
     {
       id: 'usr_001',
@@ -869,6 +821,54 @@ export default function AdLedgerApp() {
     } catch (e) {}
     return [];
   });
+
+  useEffect(() => {
+    let mounted = true;
+    const syncAdminCloudState = async () => {
+      try {
+        const { states, tableMissing } = await fetchAllPlatformStates();
+        if (!mounted || tableMissing || !states) return;
+
+        if (states.maintenance_mode !== undefined) {
+          setIsMaintenanceMode(!!states.maintenance_mode?.enabled);
+        }
+        if (states.global_announcement) {
+          setGlobalAnnouncement(states.global_announcement);
+        }
+        if (Array.isArray(states.promo_coupons)) {
+          try { localStorage.setItem('quantrex_promo_coupons', JSON.stringify(states.promo_coupons)); } catch {}
+        }
+        if (states.platform_config) {
+          try { localStorage.setItem('quantrex_platform_config', JSON.stringify(states.platform_config)); } catch {}
+        }
+        if (states.workspace_overrides && activeWsId) {
+          const ov = states.workspace_overrides[activeWsId];
+          if (ov) {
+            setIsWorkspaceSuspended(!!ov.isSuspended || ov.status === 'Suspended');
+            if (ov.plan && ov.plan.toLowerCase().includes('starter') && !ov.isSuspended) {
+              setSubscription(prev => prev?.status === 'active' ? prev : {
+                ...prev,
+                status: 'active',
+                plan: 'starter_monthly',
+                planName: 'Starter Plan'
+              });
+            }
+          } else {
+            setIsWorkspaceSuspended(false);
+          }
+        }
+      } catch {}
+    };
+
+    syncAdminCloudState();
+    const intervalId = setInterval(syncAdminCloudState, 60000);
+    window.addEventListener('focus', syncAdminCloudState);
+    return () => {
+      mounted = false;
+      clearInterval(intervalId);
+      window.removeEventListener('focus', syncAdminCloudState);
+    };
+  }, [activeWsId]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
