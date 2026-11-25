@@ -1613,26 +1613,28 @@ export default function AdLedgerApp() {
             : 'border-t-amber-500';
         const iconEmoji = bType === 'warning' ? '⚡' : bType === 'info' ? 'ℹ️' : '🎉';
         return (
-          <div className={`w-full px-10 py-2.5 text-xs sm:text-[13px] font-sans bg-white dark:bg-[#0c121e] border-b border-slate-200 dark:border-slate-800 border-t-[3px] flex items-center justify-center relative shadow-xs z-[9999] ${topAccent}`}>
-            <div className="flex items-center justify-center gap-2.5 text-center flex-wrap">
-              {bType === 'promo' && (
-                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0" />
-              )}
-              {bType === 'warning' && (
-                <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shrink-0" />
-              )}
-              <span className="text-sm shrink-0 leading-none">{iconEmoji}</span>
-              <span className="font-bold text-slate-900 dark:text-white">{globalAnnouncement.title}:</span>
-              <span className="font-normal text-slate-600 dark:text-slate-300">{globalAnnouncement.message}</span>
+          <div className="w-full px-3 pt-2 pb-1 bg-[#ebf0f7] dark:bg-[#06090e] z-[9999] relative font-sans">
+            <div className={`w-full px-10 py-2.5 text-xs bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 border-t-2 rounded-xl flex items-center justify-center relative shadow-sm ${topAccent}`}>
+              <div className="flex items-center justify-center gap-2.5 text-center flex-wrap">
+                {bType === 'promo' && (
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0" />
+                )}
+                {bType === 'warning' && (
+                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shrink-0" />
+                )}
+                <span className="text-sm shrink-0 leading-none">{iconEmoji}</span>
+                <span className="font-bold text-slate-900 dark:text-white">{globalAnnouncement.title}:</span>
+                <span className="font-normal text-slate-600 dark:text-slate-400">{globalAnnouncement.message}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDismissedBroadcastAt(globalAnnouncement?.updatedAt || globalAnnouncement?.title)}
+                className="absolute right-3.5 text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
+                title="Dismiss notice"
+              >
+                <X size={14} />
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => setDismissedBroadcastAt(globalAnnouncement?.updatedAt || globalAnnouncement?.title)}
-              className="absolute right-4 text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
-              title="Dismiss notice"
-            >
-              <X size={15} />
-            </button>
           </div>
         );
       })()}
