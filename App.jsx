@@ -1617,17 +1617,17 @@ export default function AdLedgerApp() {
             ? 'absolute right-4 text-slate-950/70 hover:text-slate-950 p-1 rounded-lg hover:bg-black/10 transition-colors cursor-pointer'
             : 'absolute right-4 text-white/80 hover:text-white p-1 rounded-lg hover:bg-white/15 transition-colors cursor-pointer';
         return (
-          <div className={`w-full px-10 py-3 text-[13px] sm:text-sm flex items-center justify-center relative border-b shadow-sm z-[9999] ${bannerStyle}`}>
+          <div className={`w-full px-10 py-2.5 text-xs sm:text-[13px] font-sans flex items-center justify-center relative border-b shadow-sm z-[9999] ${bannerStyle}`}>
             <div className="flex items-center justify-center gap-2.5 text-center flex-wrap">
               {bType === 'promo' && (
-                <span className="w-2.5 h-2.5 rounded-full bg-yellow-200 ring-2 ring-slate-950/70 animate-pulse shrink-0" />
+                <span className="w-2 h-2 rounded-full bg-amber-950/80 animate-pulse shrink-0" />
               )}
               {bType === 'warning' && (
-                <span className="w-2.5 h-2.5 rounded-full bg-white ring-2 ring-rose-950/40 animate-pulse shrink-0" />
+                <span className="w-2 h-2 rounded-full bg-white animate-pulse shrink-0" />
               )}
-              <span className="text-base shrink-0 leading-none">{iconEmoji}</span>
-              <span className="font-extrabold tracking-tight">{globalAnnouncement.title}:</span>
-              <span className="font-medium opacity-95">{globalAnnouncement.message}</span>
+              <span className="text-sm shrink-0 leading-none">{iconEmoji}</span>
+              <span className="font-bold tracking-normal">{globalAnnouncement.title}:</span>
+              <span className="font-normal opacity-95">{globalAnnouncement.message}</span>
             </div>
             <button
               type="button"
@@ -1635,7 +1635,7 @@ export default function AdLedgerApp() {
               className={dismissBtnClass}
               title="Dismiss notice"
             >
-              <X size={16} />
+              <X size={15} />
             </button>
           </div>
         );
