@@ -1607,20 +1607,27 @@ export default function AdLedgerApp() {
         const bType = globalAnnouncement.type || 'promo';
         const bannerStyle =
           bType === 'warning'
-            ? 'bg-rose-50 dark:bg-rose-950/90 text-rose-950 dark:text-rose-100 border-rose-200 dark:border-rose-800/70'
+            ? 'bg-gradient-to-r from-rose-600 via-red-600 to-rose-600 text-white border-rose-700'
             : bType === 'info'
-            ? 'bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-100 border-slate-200 dark:border-slate-800'
-            : 'bg-amber-50 dark:bg-amber-950/90 text-amber-950 dark:text-amber-100 border-amber-200 dark:border-amber-800/70';
+            ? 'bg-gradient-to-r from-sky-600 via-blue-600 to-sky-600 text-white border-sky-700'
+            : 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 text-slate-950 border-amber-600';
         const iconEmoji = bType === 'warning' ? '⚡' : bType === 'info' ? 'ℹ️' : '🎉';
-        const dismissBtnClass = 'opacity-60 hover:opacity-100 p-0.5 shrink-0 cursor-pointer';
+        const dismissBtnClass =
+          bType === 'promo'
+            ? 'absolute right-4 text-slate-950/70 hover:text-slate-950 p-1 rounded-lg hover:bg-black/10 transition-colors cursor-pointer'
+            : 'absolute right-4 text-white/80 hover:text-white p-1 rounded-lg hover:bg-white/15 transition-colors cursor-pointer';
         return (
-          <div className={`w-full px-4 py-2 text-xs flex items-center justify-between gap-3 border-b z-[9999] relative ${bannerStyle}`}>
-            <div className="flex items-center gap-2 min-w-0">
-              {bType === 'promo' && <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />}
-              {bType === 'warning' && <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shrink-0" />}
-              <span className="text-sm shrink-0 leading-none">{iconEmoji}</span>
-              <span className="font-bold truncate">{globalAnnouncement.title}:</span>
-              <span className="opacity-90 truncate">{globalAnnouncement.message}</span>
+          <div className={`w-full px-10 py-3 text-[13px] sm:text-sm flex items-center justify-center relative border-b shadow-sm z-[9999] ${bannerStyle}`}>
+            <div className="flex items-center justify-center gap-2.5 text-center flex-wrap">
+              {bType === 'promo' && (
+                <span className="w-2.5 h-2.5 rounded-full bg-yellow-200 ring-2 ring-slate-950/70 animate-pulse shrink-0" />
+              )}
+              {bType === 'warning' && (
+                <span className="w-2.5 h-2.5 rounded-full bg-white ring-2 ring-rose-950/40 animate-pulse shrink-0" />
+              )}
+              <span className="text-base shrink-0 leading-none">{iconEmoji}</span>
+              <span className="font-extrabold tracking-tight">{globalAnnouncement.title}:</span>
+              <span className="font-medium opacity-95">{globalAnnouncement.message}</span>
             </div>
             <button
               type="button"
@@ -1628,7 +1635,7 @@ export default function AdLedgerApp() {
               className={dismissBtnClass}
               title="Dismiss notice"
             >
-              <X size={14} />
+              <X size={16} />
             </button>
           </div>
         );
