@@ -1554,7 +1554,20 @@ export default function AdminConsoleView({
               </div>
               <button
                 type="button"
-                onClick={() => setAnnEnabled(!annEnabled)}
+                onClick={() => {
+                  const next = !annEnabled;
+                  setAnnEnabled(next);
+                  const annPayload = {
+                    title: annTitle.trim(),
+                    message: annMessage.trim(),
+                    type: annType,
+                    enabled: next,
+                    updatedAt: new Date().toISOString()
+                  };
+                  setGlobalAnnouncement(annPayload);
+                  if (onCloudSave) onCloudSave('global_announcement', annPayload);
+                  showToast(next ? 'Broadcast notice is now LIVE!' : 'Broadcast notice disabled.');
+                }}
                 className={'px-4 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ' + (
                   annEnabled
                     ? 'bg-emerald-600 text-white shadow-sm'
