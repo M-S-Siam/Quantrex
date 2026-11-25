@@ -1607,22 +1607,18 @@ export default function AdLedgerApp() {
         const bType = globalAnnouncement.type || 'promo';
         const bannerStyle =
           bType === 'warning'
-            ? 'bg-rose-600 text-white border-rose-700'
+            ? 'bg-rose-50 dark:bg-rose-950/90 text-rose-950 dark:text-rose-100 border-rose-200 dark:border-rose-800/70'
             : bType === 'info'
-            ? 'bg-sky-600 text-white border-sky-700'
-            : 'bg-amber-500 text-slate-950 border-amber-600';
-        const iconEl =
-          bType === 'warning' ? <AlertCircle size={14} className="shrink-0" />
-          : bType === 'info' ? <Bell size={14} className="shrink-0" />
-          : <Sparkles size={14} className="shrink-0" />;
-        const dismissBtnClass =
-          bType === 'promo'
-            ? 'text-slate-900/70 hover:text-slate-950 p-0.5 shrink-0 cursor-pointer'
-            : 'text-white/80 hover:text-white p-0.5 shrink-0 cursor-pointer';
+            ? 'bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-100 border-slate-200 dark:border-slate-800'
+            : 'bg-amber-50 dark:bg-amber-950/90 text-amber-950 dark:text-amber-100 border-amber-200 dark:border-amber-800/70';
+        const iconEmoji = bType === 'warning' ? '⚡' : bType === 'info' ? 'ℹ️' : '🎉';
+        const dismissBtnClass = 'opacity-60 hover:opacity-100 p-0.5 shrink-0 cursor-pointer';
         return (
           <div className={`w-full px-4 py-2 text-xs flex items-center justify-between gap-3 border-b z-[9999] relative ${bannerStyle}`}>
             <div className="flex items-center gap-2 min-w-0">
-              {iconEl}
+              {bType === 'promo' && <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />}
+              {bType === 'warning' && <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shrink-0" />}
+              <span className="text-sm shrink-0 leading-none">{iconEmoji}</span>
               <span className="font-bold truncate">{globalAnnouncement.title}:</span>
               <span className="opacity-90 truncate">{globalAnnouncement.message}</span>
             </div>

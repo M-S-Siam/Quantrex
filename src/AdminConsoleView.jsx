@@ -1588,9 +1588,9 @@ export default function AdminConsoleView({
                   onChange={(e) => setAnnType(e.target.value)}
                   className="w-full bg-white dark:bg-[#090d16] border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-2 text-xs font-bold"
                 >
-                  <option value="promo">🎉 Launching Promo (Gold / Amber)</option>
-                  <option value="info">ℹ️ System Notice (Sky Blue)</option>
-                  <option value="warning">⚡ Maintenance / Alert (Rose / Red)</option>
+                  <option value="promo">🎉 Launching Promo (Gold Signal)</option>
+                  <option value="info">ℹ️ System Notice (No Signal)</option>
+                  <option value="warning">⚡ Maintenance / Alert (Red Signal)</option>
                 </select>
               </div>
 
@@ -1636,7 +1636,11 @@ export default function AdminConsoleView({
                     : 'bg-sky-500/10 border-sky-500/30 text-sky-950 dark:text-sky-200'
               )}>
                 <div className="flex items-center gap-2.5">
-                  <Sparkles size={16} className="shrink-0 text-amber-500" />
+                  {annType === 'promo' && <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0" />}
+                  {annType === 'warning' && <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shrink-0" />}
+                  <span className="text-sm shrink-0 leading-none">
+                    {annType === 'promo' ? '🎉' : annType === 'warning' ? '⚡' : 'ℹ️'}
+                  </span>
                   <div>
                     <strong className="text-xs">{annTitle || 'Special Launching Offer'}</strong>
                     <div className="text-[11px] opacity-90">{annMessage || 'Message will appear here...'}</div>
