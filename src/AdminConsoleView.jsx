@@ -1588,9 +1588,9 @@ export default function AdminConsoleView({
                   onChange={(e) => setAnnType(e.target.value)}
                   className="w-full bg-white dark:bg-[#090d16] border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-2 text-xs font-bold"
                 >
-                  <option value="promo">🎉 Launching Promo (Gold Signal)</option>
-                  <option value="info">ℹ️ System Notice (No Signal)</option>
-                  <option value="warning">⚡ Maintenance / Alert (Red Signal)</option>
+                  <option value="promo">🎉 Launching Promo</option>
+                  <option value="info">ℹ️ System Notice</option>
+                  <option value="warning">⚡ Maintenance / Alert</option>
                 </select>
               </div>
 
