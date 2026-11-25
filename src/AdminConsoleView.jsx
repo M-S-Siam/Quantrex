@@ -1590,7 +1590,7 @@ export default function AdminConsoleView({
                 >
                   <option value="promo">🎉 Launching Promo</option>
                   <option value="info">ℹ️ System Notice</option>
-                  <option value="warning">⚡ Maintenance / Alert</option>
+                  <option value="warning">⚡ Maintenance Alert</option>
                 </select>
               </div>
 
