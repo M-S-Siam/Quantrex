@@ -1613,29 +1613,29 @@ export default function AdLedgerApp() {
             : '#f59e0b';
         const iconEmoji = bType === 'warning' ? '⚡' : bType === 'info' ? 'ℹ️' : '🎉';
         return (
-          <div className="w-full px-4 pt-2.5 pb-1 bg-[#ebf0f7] dark:bg-[#06090e] z-[9999] relative font-sans">
+          <div className="w-full px-4 pt-3 pb-1.5 bg-[#ebf0f7] dark:bg-[#06090e] z-[9999] relative font-sans">
             <div
-              style={{ borderTopColor: topAccentColor, borderTopWidth: '2px' }}
-              className="w-full px-10 py-2.5 text-xs bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-center relative shadow-sm"
+              style={{ borderTopColor: topAccentColor, borderTopWidth: '3px' }}
+              className="w-full px-12 py-3.5 text-[13px] bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-center relative shadow-sm"
             >
               <div className="flex items-center justify-center gap-2.5 text-center flex-wrap">
                 {bType === 'promo' && (
-                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shrink-0" />
                 )}
                 {bType === 'warning' && (
-                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shrink-0" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse shrink-0" />
                 )}
-                <span className="text-sm shrink-0 leading-none">{iconEmoji}</span>
+                <span className="text-base shrink-0 leading-none">{iconEmoji}</span>
                 <span className="font-bold text-slate-900 dark:text-white">{globalAnnouncement.title}:</span>
                 <span className="font-normal text-slate-600 dark:text-slate-400">{globalAnnouncement.message}</span>
               </div>
               <button
                 type="button"
                 onClick={() => setDismissedBroadcastAt(globalAnnouncement?.updatedAt || globalAnnouncement?.title)}
-                className="absolute right-3.5 text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
+                className="absolute right-4 text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
                 title="Dismiss notice"
               >
-                <X size={14} />
+                <X size={15} />
               </button>
             </div>
           </div>
