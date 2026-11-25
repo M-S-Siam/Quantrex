@@ -200,7 +200,7 @@ function useThemeStorage(key, defaultTheme = 'dark') {
           window.localStorage.setItem('quantrex_theme_explicitly_set', 'true');
           window.localStorage.setItem(key, JSON.stringify(next));
           window.localStorage.setItem(`adlytic_${key}`, JSON.stringify(next));
-        } catch (e) {}
+        } catch (e) { }
       }
       return next;
     });
@@ -528,7 +528,7 @@ export default function AdLedgerApp() {
 
   useEffect(() => {
     try {
-      const isStandaloneMode = 
+      const isStandaloneMode =
         (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
         (typeof window !== 'undefined' && window.navigator && window.navigator.standalone === true);
       setIsStandalone(Boolean(isStandaloneMode));
@@ -550,7 +550,7 @@ export default function AdLedgerApp() {
         window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
         window.removeEventListener('appinstalled', handleAppInstalled);
       };
-    } catch (e) {}
+    } catch (e) { }
   }, []);
 
   const handleInstallApp = async () => {
@@ -563,7 +563,7 @@ export default function AdLedgerApp() {
           setShowPwaBanner(false);
           setIsStandalone(true);
         }
-      } catch (err) {}
+      } catch (err) { }
       return;
     }
 
@@ -595,11 +595,11 @@ export default function AdLedgerApp() {
     { email: 'veloxadsphere@gmail.com', role: 'Super Admin', addedAt: '2026-10-23', status: 'Active' }
   ]);
 
-    // Cleanup any stray announcement cache
+  // Cleanup any stray announcement cache
   useEffect(() => {
     try {
       localStorage.removeItem('quantrex_global_announcement');
-    } catch {}
+    } catch { }
   }, []);
 
   const [globalAnnouncement, setGlobalAnnouncement] = useLocalStorage('quantrex_global_announcement', {
@@ -705,7 +705,7 @@ export default function AdLedgerApp() {
       if (data?.user?.email) {
         setCurrentUserEmail(data.user.email.toLowerCase().trim());
       }
-    }).catch(() => {});
+    }).catch(() => { });
   }, []);
 
   const [supportTickets, setSupportTickets] = useLocalStorage('quantrex_support_tickets', []);
@@ -788,7 +788,7 @@ export default function AdLedgerApp() {
       if (bizName && bizName.trim() && !/adlytic/i.test(bizName.trim())) {
         setWorkspaceSettings(prev => ({ ...prev, businessName: bizName.trim() }));
       }
-    }).catch(() => {});
+    }).catch(() => { });
   }, []);
 
   // Modal State
@@ -818,7 +818,7 @@ export default function AdLedgerApp() {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
-    } catch (e) {}
+    } catch (e) { }
     return [];
   });
 
@@ -836,10 +836,10 @@ export default function AdLedgerApp() {
           setGlobalAnnouncement(states.global_announcement);
         }
         if (Array.isArray(states.promo_coupons)) {
-          try { localStorage.setItem('quantrex_promo_coupons', JSON.stringify(states.promo_coupons)); } catch {}
+          try { localStorage.setItem('quantrex_promo_coupons', JSON.stringify(states.promo_coupons)); } catch { }
         }
         if (states.platform_config) {
-          try { localStorage.setItem('quantrex_platform_config', JSON.stringify(states.platform_config)); } catch {}
+          try { localStorage.setItem('quantrex_platform_config', JSON.stringify(states.platform_config)); } catch { }
         }
         if (states.workspace_overrides && activeWsId) {
           const ov = states.workspace_overrides[activeWsId];
@@ -857,7 +857,7 @@ export default function AdLedgerApp() {
             setIsWorkspaceSuspended(false);
           }
         }
-      } catch {}
+      } catch { }
     };
 
     syncAdminCloudState();
@@ -909,7 +909,7 @@ export default function AdLedgerApp() {
       }
       try {
         window.localStorage.setItem('quantrex_user_workspaces', JSON.stringify(next));
-      } catch (e) {}
+      } catch (e) { }
       return next;
     });
   }, [workspaceSettings.businessName, workspaceSettings.shortCode, workspaceSettings.primaryCurrency, workspaceLogo, activeWsId]);
@@ -1603,23 +1603,40 @@ export default function AdLedgerApp() {
   }
 
   return (
-    <>      {globalAnnouncement?.enabled && dismissedBroadcastAt !== (globalAnnouncement?.updatedAt || globalAnnouncement?.title) && (
-        <div className="w-full bg-slate-900 text-white px-4 py-2 text-xs flex items-center justify-between gap-3 border-b border-slate-800 z-[9999] relative">
-          <div className="flex items-center gap-2 min-w-0">
-            <Bell size={13} className="text-amber-400 shrink-0" />
-            <span className="font-bold truncate">{globalAnnouncement.title}:</span>
-            <span className="text-slate-300 truncate">{globalAnnouncement.message}</span>
+    <>      {globalAnnouncement?.enabled && dismissedBroadcastAt !== (globalAnnouncement?.updatedAt || globalAnnouncement?.title) && (() => {
+        const bType = globalAnnouncement.type || 'promo';
+        const bannerStyle =
+          bType === 'warning'
+            ? 'bg-rose-600 text-white border-rose-700'
+            : bType === 'info'
+            ? 'bg-sky-600 text-white border-sky-700'
+            : 'bg-amber-500 text-slate-950 border-amber-600';
+        const iconEl =
+          bType === 'warning' ? <AlertCircle size={14} className="shrink-0" />
+          : bType === 'info' ? <Bell size={14} className="shrink-0" />
+          : <Sparkles size={14} className="shrink-0" />;
+        const dismissBtnClass =
+          bType === 'promo'
+            ? 'text-slate-900/70 hover:text-slate-950 p-0.5 shrink-0 cursor-pointer'
+            : 'text-white/80 hover:text-white p-0.5 shrink-0 cursor-pointer';
+        return (
+          <div className={`w-full px-4 py-2 text-xs flex items-center justify-between gap-3 border-b z-[9999] relative ${bannerStyle}`}>
+            <div className="flex items-center gap-2 min-w-0">
+              {iconEl}
+              <span className="font-bold truncate">{globalAnnouncement.title}:</span>
+              <span className="opacity-90 truncate">{globalAnnouncement.message}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setDismissedBroadcastAt(globalAnnouncement?.updatedAt || globalAnnouncement?.title)}
+              className={dismissBtnClass}
+              title="Dismiss notice"
+            >
+              <X size={14} />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => setDismissedBroadcastAt(globalAnnouncement?.updatedAt || globalAnnouncement?.title)}
-            className="text-slate-400 hover:text-white p-0.5 shrink-0 cursor-pointer"
-            title="Dismiss notice"
-          >
-            <X size={14} />
-          </button>
-        </div>
-      )}
+        );
+      })()}
       <style>{`
         /* 100% AUTHENTIC MASTER NEUMORPHIC SOFT-UI DESIGN SYSTEM (LIGHT) */
         .adl-shell:not(.dark) {
@@ -1775,10 +1792,10 @@ export default function AdLedgerApp() {
         )}
         {/* SIDEBAR (EXACT 4 FLOATING CARDS - IDENTICAL SHAPE, SIZE & NO-SCROLL FIT ACROSS BOTH THEMES) */}
         <aside className={`fixed inset-y-0 left-0 z-50 w-72 sm:w-64 ${theme === 'dark' ? 'bg-[#0a0d14] text-slate-200' : 'bg-[#ebf0f7] text-slate-800'} transition-transform transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:relative flex flex-col p-3 sm:p-3.5 gap-2.5 sm:gap-3 h-full max-h-screen md:h-screen overflow-y-auto no-scrollbar`}>
-          
+
           {/* Top Wrapper for Portion 1, 2, 3 */}
           <div className="space-y-2.5 sm:space-y-3 flex flex-col gap-2.5 sm:gap-3">
-            
+
             {/* PORTION 1: Top Active Agency Switcher Pill */}
             <div className="relative" ref={workspaceDropdownRef}>
               <div
@@ -1786,11 +1803,10 @@ export default function AdLedgerApp() {
                 tabIndex={0}
                 onClick={() => setIsWorkspaceDropdownOpen(prev => !prev)}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsWorkspaceDropdownOpen(prev => !prev); }}
-                className={`adl-sidebar-card rounded-2xl sm:rounded-3xl p-2 sm:p-3 transition-all border cursor-pointer select-none ${
-                  theme === 'dark'
+                className={`adl-sidebar-card rounded-2xl sm:rounded-3xl p-2 sm:p-3 transition-all border cursor-pointer select-none ${theme === 'dark'
                     ? 'bg-[#111722] hover:bg-[#161f2e] border-white/10 hover:border-sky-500/40 shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
                     : 'bg-white hover:bg-slate-50 border-slate-200/90 hover:border-sky-400 shadow-[0_4px_18px_rgba(166,180,200,0.25)]'
-                } ${isWorkspaceDropdownOpen ? (theme === 'dark' ? 'ring-2 ring-sky-500/40' : 'ring-2 ring-sky-400') : ''}`}
+                  } ${isWorkspaceDropdownOpen ? (theme === 'dark' ? 'ring-2 ring-sky-500/40' : 'ring-2 ring-sky-400') : ''}`}
                 title="Click to switch or create agency workspace"
               >
                 <div className="flex items-center gap-2.5">
@@ -1801,11 +1817,10 @@ export default function AdLedgerApp() {
                       className="w-9 h-9 rounded-2xl object-cover ring-1 ring-black/5 shrink-0 bg-white shadow-xs"
                     />
                   ) : (
-                    <div className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 border ${
-                      theme === 'dark'
+                    <div className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 border ${theme === 'dark'
                         ? 'bg-[#091422] border-sky-500/30 text-sky-400 shadow-none'
                         : 'bg-[#ebf0f7] border-white shadow-[inset_2px_2px_4px_rgba(166,180,200,0.4),inset_-2px_-2px_4px_#ffffff] text-blue-600'
-                    }`}>
+                      }`}>
                       <Building size={16} className={theme === 'dark' ? 'text-sky-400' : 'text-blue-600'} />
                     </div>
                   )}
@@ -1841,11 +1856,10 @@ export default function AdLedgerApp() {
                       e.stopPropagation();
                       setIsMobileMenuOpen(false);
                     }}
-                    className={`md:hidden p-1.5 rounded-xl transition-colors ml-1 shrink-0 cursor-pointer ${
-                      theme === 'dark'
+                    className={`md:hidden p-1.5 rounded-xl transition-colors ml-1 shrink-0 cursor-pointer ${theme === 'dark'
                         ? 'text-slate-400 hover:text-white hover:bg-white/10'
                         : 'text-slate-400 hover:text-slate-700 hover:bg-black/5'
-                    }`}
+                      }`}
                     aria-label="Close sidebar"
                   >
                     <X size={16} />
@@ -1855,11 +1869,10 @@ export default function AdLedgerApp() {
 
               {/* WORKSPACE SWITCHER DROPDOWN */}
               {isWorkspaceDropdownOpen && (
-                <div className={`absolute top-full left-0 right-0 mt-2 z-50 rounded-2xl p-2.5 shadow-2xl border backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-150 ${
-                  theme === 'dark'
+                <div className={`absolute top-full left-0 right-0 mt-2 z-50 rounded-2xl p-2.5 shadow-2xl border backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-150 ${theme === 'dark'
                     ? 'bg-[#0f1724]/95 border-white/15 shadow-[0_12px_30px_rgba(0,0,0,0.8)]'
                     : 'bg-white/95 border-slate-200 shadow-[0_12px_30px_rgba(166,180,200,0.35)]'
-                }`}>
+                  }`}>
                   <div className="flex items-center justify-between px-2 py-1 mb-1.5">
                     <span className="text-[10px] font-black tracking-wider uppercase text-slate-400">
                       Your Agencies
@@ -1883,24 +1896,22 @@ export default function AdLedgerApp() {
                           key={ws.id}
                           type="button"
                           onClick={() => handleSwitchWorkspace(ws.id)}
-                          className={`w-full flex items-center gap-2.5 p-2 rounded-xl text-left transition-all cursor-pointer ${
-                            isActive
+                          className={`w-full flex items-center gap-2.5 p-2 rounded-xl text-left transition-all cursor-pointer ${isActive
                               ? theme === 'dark'
                                 ? 'bg-sky-500/15 border border-sky-500/30 text-white'
                                 : 'bg-sky-50 border border-sky-200 text-sky-950 font-semibold'
                               : theme === 'dark'
                                 ? 'hover:bg-white/5 text-slate-300 hover:text-white border border-transparent'
                                 : 'hover:bg-slate-100 text-slate-700 hover:text-slate-900 border border-transparent'
-                          }`}
+                            }`}
                         >
                           {ws.logo ? (
                             <img src={ws.logo} alt="" className="w-7 h-7 rounded-lg object-cover shrink-0" />
                           ) : (
-                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-black ${
-                              isActive
+                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-black ${isActive
                                 ? 'bg-sky-500 text-white'
                                 : theme === 'dark' ? 'bg-[#182334] text-slate-400' : 'bg-slate-200 text-slate-600'
-                            }`}>
+                              }`}>
                               {(ws.shortCode || ws.businessName?.slice(0, 2) || 'AG').slice(0, 2).toUpperCase()}
                             </div>
                           )}
@@ -1944,9 +1955,8 @@ export default function AdLedgerApp() {
                         setCurrentView('settings');
                         setIsMobileMenuOpen(false);
                       }}
-                      className={`w-full flex items-center justify-center gap-1.5 py-1.5 text-[11px] font-medium transition-colors cursor-pointer ${
-                        theme === 'dark' ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
-                      }`}
+                      className={`w-full flex items-center justify-center gap-1.5 py-1.5 text-[11px] font-medium transition-colors cursor-pointer ${theme === 'dark' ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
+                        }`}
                     >
                       <Settings size={12} />
                       <span>Agency Settings & Profile</span>
@@ -1957,11 +1967,10 @@ export default function AdLedgerApp() {
             </div>
 
             {/* PORTION 2: Main Navigation Menu Card */}
-            <div className={`adl-sidebar-card rounded-2xl sm:rounded-3xl p-1.5 sm:p-2.5 space-y-1 sm:space-y-1.5 border ${
-              theme === 'dark'
+            <div className={`adl-sidebar-card rounded-2xl sm:rounded-3xl p-1.5 sm:p-2.5 space-y-1 sm:space-y-1.5 border ${theme === 'dark'
                 ? 'bg-[#111722] border-white/10 shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
                 : 'bg-white border-slate-200/90 shadow-[0_4px_18px_rgba(166,180,200,0.25)]'
-            }`}>
+              }`}>
               <NavItem theme={theme} icon={<LayoutDashboard />} label="Dashboard" isActive={currentView === 'dashboard'} onClick={() => { setCurrentView('dashboard'); setIsMobileMenuOpen(false); }} />
               <NavItem theme={theme} icon={<Users />} label="Clients" isActive={currentView === 'clients'} onClick={() => { setCurrentView('clients'); setIsMobileMenuOpen(false); }} />
               <NavItem theme={theme} icon={<Mail />} label="Campaigns" isActive={currentView === 'campaigns'} onClick={() => { setCurrentView('campaigns'); setIsMobileMenuOpen(false); }} />
@@ -1971,11 +1980,10 @@ export default function AdLedgerApp() {
             </div>
 
             {/* PORTION 3: Workspace Section Card */}
-            <div className={`adl-sidebar-card rounded-2xl sm:rounded-3xl p-1.5 sm:p-2.5 space-y-1 sm:space-y-1.5 border ${
-              theme === 'dark'
+            <div className={`adl-sidebar-card rounded-2xl sm:rounded-3xl p-1.5 sm:p-2.5 space-y-1 sm:space-y-1.5 border ${theme === 'dark'
                 ? 'bg-[#111722] border-white/10 shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
                 : 'bg-white border-slate-200/90 shadow-[0_4px_18px_rgba(166,180,200,0.25)]'
-            }`}>
+              }`}>
               <p className={`px-3 pt-1 text-[9.5px] font-black uppercase tracking-wider ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>WORKSPACE</p>
               <NavItem theme={theme} icon={<Crown />} label="Subscriptions" isActive={currentView === 'subscription' || currentView === 'billing' || currentView === 'plans'} onClick={() => { setCurrentView('subscription'); setIsMobileMenuOpen(false); }} />
               <NavItem theme={theme} icon={<PlugZap />} label="Integrations" isActive={currentView === 'integrations'} onClick={() => { setCurrentView('integrations'); setIsMobileMenuOpen(false); }} />
@@ -1987,17 +1995,15 @@ export default function AdLedgerApp() {
           </div>
 
           {/* PORTION 4: Bottom Platform Brand Card */}
-          <div className={`adl-sidebar-card rounded-2xl sm:rounded-3xl p-2 sm:p-3 shrink-0 mt-1 sm:mt-2 border ${
-            theme === 'dark'
+          <div className={`adl-sidebar-card rounded-2xl sm:rounded-3xl p-2 sm:p-3 shrink-0 mt-1 sm:mt-2 border ${theme === 'dark'
               ? 'bg-[#111722] border-white/10 shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
               : 'bg-white border-slate-200/90 shadow-[0_4px_18px_rgba(166,180,200,0.25)]'
-          }`}>
+            }`}>
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-2xl overflow-hidden shrink-0 flex items-center justify-center border ${
-                theme === 'dark'
+              <div className={`w-10 h-10 rounded-2xl overflow-hidden shrink-0 flex items-center justify-center border ${theme === 'dark'
                   ? 'bg-[#090c12] border-white/10 shadow-none'
                   : 'bg-white border-white shadow-[inset_2px_2px_4px_rgba(166,180,200,0.35),inset_-2px_-2px_4px_#ffffff]'
-              }`}>
+                }`}>
                 <img
                   src={QUANTREX_LOGO_DATA_URL}
                   alt="Quantrex Platform"
@@ -2036,11 +2042,10 @@ export default function AdLedgerApp() {
                 <input
                   type="text"
                   placeholder="Search clients, campaigns, cards..."
-                  className={`pl-9 pr-4 py-2 rounded-xl text-xs font-semibold outline-none transition-all w-60 lg:w-80 border ${
-                    theme === 'dark'
+                  className={`pl-9 pr-4 py-2 rounded-xl text-xs font-semibold outline-none transition-all w-60 lg:w-80 border ${theme === 'dark'
                       ? 'bg-[#090c12] text-white placeholder-slate-500 border-white/10 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.8)]'
                       : 'bg-[#ebf0f7] text-slate-800 placeholder-slate-400 border-white/90 shadow-[inset_2px_2px_5px_rgba(166,180,200,0.4),inset_-2px_-2px_5px_#ffffff]'
-                  }`}
+                    }`}
                 />
               </div>
             </div>
@@ -2052,11 +2057,10 @@ export default function AdLedgerApp() {
               <button
                 type="button"
                 onClick={handleToggleTheme}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer select-none border ${
-                  theme === 'dark'
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer select-none border ${theme === 'dark'
                     ? 'bg-[#090c12] border-white/10 text-amber-400 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.05)]'
                     : 'bg-[#ebf0f7] border-white text-slate-700 shadow-[3px_3px_8px_rgba(166,180,200,0.45),-3px_-3px_8px_#ffffff] hover:text-amber-600 active:scale-95'
-                }`}
+                  }`}
                 title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
               >
                 {theme === 'dark' ? (
@@ -2076,11 +2080,10 @@ export default function AdLedgerApp() {
               <button
                 type="button"
                 onClick={() => setActiveModal('support')}
-                className={`inline-flex items-center justify-center px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer select-none border ${
-                  theme === 'dark'
+                className={`inline-flex items-center justify-center px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer select-none border ${theme === 'dark'
                     ? 'bg-[#090c12] border-white/10 text-sky-400 hover:text-sky-300 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.8),inset_-1px_-1px_3px_rgba(255,255,255,0.05)] hover:border-sky-500/40'
                     : 'bg-[#ebf0f7] border-white text-slate-700 shadow-[3px_3px_8px_rgba(166,180,200,0.45),-3px_-3px_8px_#ffffff] hover:text-sky-600 active:scale-95'
-                }`}
+                  }`}
                 title="Quantrex Help & Support Desk"
               >
                 <span className="font-extrabold text-[11px]">Support</span>
@@ -2089,15 +2092,14 @@ export default function AdLedgerApp() {
               {/* SUBSCRIPTION & 3-DAY TRIAL STATUS PILL */}
               <button
                 onClick={() => setCurrentView('subscription')}
-                className={`hidden md:inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-black transition-all border cursor-pointer ${
-                  theme === 'dark'
+                className={`hidden md:inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-black transition-all border cursor-pointer ${theme === 'dark'
                     ? (subscription?.status === 'active'
-                        ? 'bg-[#0a1510] border-emerald-500/40 text-emerald-300 shadow-none'
-                        : 'bg-[#181308] border-amber-500/40 text-amber-300 shadow-none')
+                      ? 'bg-[#0a1510] border-emerald-500/40 text-emerald-300 shadow-none'
+                      : 'bg-[#181308] border-amber-500/40 text-amber-300 shadow-none')
                     : (subscription?.status === 'active'
-                        ? 'bg-[#ebf0f7] border-emerald-300 text-emerald-800 hover:bg-emerald-50 shadow-[3px_3px_8px_rgba(166,180,200,0.4),-3px_-3px_8px_#ffffff]'
-                        : 'bg-[#ebf0f7] border-amber-300 text-amber-950 hover:bg-amber-50/50 shadow-[3px_3px_8px_rgba(166,180,200,0.4),-3px_-3px_8px_#ffffff]')
-                }`}
+                      ? 'bg-[#ebf0f7] border-emerald-300 text-emerald-800 hover:bg-emerald-50 shadow-[3px_3px_8px_rgba(166,180,200,0.4),-3px_-3px_8px_#ffffff]'
+                      : 'bg-[#ebf0f7] border-amber-300 text-amber-950 hover:bg-amber-50/50 shadow-[3px_3px_8px_rgba(166,180,200,0.4),-3px_-3px_8px_#ffffff]')
+                  }`}
                 title="Click to view Subscription & Billing details"
               >
                 {subscription?.status === 'active' ? (
@@ -2106,9 +2108,8 @@ export default function AdLedgerApp() {
                   <>
                     <Sparkles size={13} className={`${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'} animate-pulse shrink-0`} />
                     <span>3-Day Free Trial</span>
-                    <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider ${
-                      theme === 'dark' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-amber-500 text-white shadow-xs'
-                    }`}>
+                    <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider ${theme === 'dark' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-amber-500 text-white shadow-xs'
+                      }`}>
                       50% OFF Available
                     </span>
                   </>
@@ -2232,11 +2233,10 @@ export default function AdLedgerApp() {
                 <button
                   onClick={() => setIsQuickSettingsOpen(prev => !prev)}
                   title="Quick Settings & Profile"
-                  className={`w-9 h-9 rounded-xl border transition-all flex items-center justify-center cursor-pointer ${
-                    isQuickSettingsOpen
+                  className={`w-9 h-9 rounded-xl border transition-all flex items-center justify-center cursor-pointer ${isQuickSettingsOpen
                       ? 'bg-[#e2eaf4] border-slate-300/60 text-sky-600 shadow-[inset_2.5px_2.5px_5px_rgba(166,180,200,0.6),inset_-2.5px_-2.5px_5px_#ffffff]'
                       : 'bg-[#ebf0f7] border-white text-slate-600 hover:text-slate-900 shadow-[3px_3px_8px_rgba(166,180,200,0.45),-3px_-3px_8px_#ffffff] active:scale-95'
-                  }`}
+                    }`}
                 >
                   <SlidersHorizontal size={17} className={`transition-all duration-200 ${isQuickSettingsOpen ? 'text-sky-600' : ''}`} />
                 </button>
@@ -3053,11 +3053,10 @@ function ReportsView({ clients, cards, transactions }) {
             <button
               type="button"
               onClick={() => setShowExportMenu(prev => !prev)}
-              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border text-xs font-bold shadow-2xs transition-all cursor-pointer ${
-                showExportMenu
+              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border text-xs font-bold shadow-2xs transition-all cursor-pointer ${showExportMenu
                   ? 'bg-slate-100 border-slate-300 text-slate-900 ring-2 ring-sky-500/20'
                   : 'bg-white border-slate-200/90 text-slate-700 hover:bg-slate-50'
-              }`}
+                }`}
             >
               <Download size={14} className="text-slate-500" /> Export <ChevronDown size={12} className={`text-slate-400 transition-transform duration-150 ${showExportMenu ? 'rotate-180' : ''}`} />
             </button>
@@ -3219,12 +3218,12 @@ function ReportsView({ clients, cards, transactions }) {
                 <AreaChart data={dailyChart} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                   <defs>
                     <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.35}/>
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0.0}/>
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
                     </linearGradient>
                     <linearGradient id="costGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.35}/>
-                      <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.0}/>
+                      <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -3238,7 +3237,7 @@ function ReportsView({ clients, cards, transactions }) {
                     axisLine={false}
                     tickLine={false}
                     tick={{ fill: '#64748b', fontSize: 10, fontWeight: 600 }}
-                    tickFormatter={(val) => `৳${val >= 1000 ? `${(val/1000).toFixed(0)}k` : val}`}
+                    tickFormatter={(val) => `৳${val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val}`}
                   />
                   <Tooltip
                     content={({ active, payload, label }) => {
@@ -3498,11 +3497,10 @@ function ReportsView({ clients, cards, transactions }) {
                       {formatBDT(row.profit)}
                     </td>
                     <td className="w-[14%] pl-2 pr-5 py-3 text-right">
-                      <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
-                        row.margin > 50 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                        row.margin < 0 ? 'bg-rose-50 text-rose-700 border border-rose-200' :
-                        'bg-slate-100 text-slate-700'
-                      }`}>
+                      <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${row.margin > 50 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                          row.margin < 0 ? 'bg-rose-50 text-rose-700 border border-rose-200' :
+                            'bg-slate-100 text-slate-700'
+                        }`}>
                         {row.margin.toFixed(1)}%
                       </span>
                     </td>
@@ -3808,20 +3806,18 @@ function DashboardView({
 
   return (
     <div className="space-y-6 w-full max-w-[1720px] mx-auto animate-in fade-in duration-500 pb-16">
-      
+
       {/* 1. EXECUTIVE OPERATIONAL HERO STRIP */}
-      <div className={`rounded-2xl p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 border ${
-        theme === 'dark'
+      <div className={`rounded-2xl p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 border ${theme === 'dark'
           ? 'bg-[#111722] border-white/10 shadow-[0_8px_24px_rgba(0,0,0,0.55)]'
           : 'bg-[#ebf0f7] border-white/90 shadow-[6px_6px_16px_rgba(166,180,200,0.5),-6px_-6px_16px_#ffffff]'
-      }`}>
+        }`}>
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-black border ${
-              theme === 'dark'
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-black border ${theme === 'dark'
                 ? 'bg-[#091422] border-sky-500/30 text-sky-400 shadow-none'
                 : 'bg-[#ebf0f7] border-white text-sky-600 shadow-[inset_2px_2px_5px_rgba(166,180,200,0.45),inset_-2px_-2px_5px_#ffffff]'
-            }`}>
+              }`}>
               <LayoutDashboard size={19} />
             </div>
             <h1 className={`text-xl sm:text-2xl font-black tracking-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
@@ -3835,11 +3831,10 @@ function DashboardView({
 
         {/* Live Operational Status & DB Telemetry */}
         <div className="flex items-center gap-2.5">
-          <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full border ${
-            theme === 'dark'
+          <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full border ${theme === 'dark'
               ? 'bg-[#0a1510] border-emerald-500/30 shadow-none'
               : 'bg-[#ebf0f7] border-white shadow-[inset_2px_2px_4px_rgba(166,180,200,0.4),inset_-2px_-2px_4px_#ffffff]'
-          }`}>
+            }`}>
             <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.8)] animate-pulse" />
             <span className={`text-xs font-bold ${theme === 'dark' ? 'text-emerald-300' : 'text-slate-700'}`}>Live Supabase DB Sync</span>
           </div>
@@ -3850,29 +3845,26 @@ function DashboardView({
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5">
 
         {/* CARD 1: TOTAL REVENUE (BDT) */}
-        <div className={`rounded-2xl p-4 sm:p-5 flex flex-col justify-between border ${
-          theme === 'dark'
+        <div className={`rounded-2xl p-4 sm:p-5 flex flex-col justify-between border ${theme === 'dark'
             ? 'bg-[#111722] border-white/10 shadow-[0_8px_24px_rgba(0,0,0,0.55)]'
             : 'bg-[#ebf0f7] border-white/90 shadow-[6px_6px_16px_rgba(166,180,200,0.5),-6px_-6px_16px_#ffffff]'
-        }`}>
+          }`}>
           <div className={`flex items-center justify-between pb-3 border-b ${theme === 'dark' ? 'border-white/10' : 'border-slate-200/60'}`}>
             <div className="flex items-center gap-2.5">
-              <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold shrink-0 shadow-xs border ${
-                theme === 'dark'
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold shrink-0 shadow-xs border ${theme === 'dark'
                   ? 'bg-[#0a1510] border-emerald-500/30 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.15)]'
                   : 'bg-emerald-50 border-emerald-200/60 text-emerald-600'
-              }`}>
+                }`}>
                 <ArrowDownRight size={17} />
               </div>
               <span className={`font-extrabold text-xs uppercase tracking-wider leading-tight block ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
                 Total<br />Revenue
               </span>
             </div>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-              theme === 'dark'
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${theme === 'dark'
                 ? 'bg-[#0a1510] text-emerald-400 border-emerald-500/30'
                 : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-            }`}>
+              }`}>
               BDT In
             </span>
           </div>
@@ -3904,29 +3896,26 @@ function DashboardView({
         </div>
 
         {/* CARD 2: TOTAL USD SPENT */}
-        <div className={`rounded-2xl p-4 sm:p-5 flex flex-col justify-between border ${
-          theme === 'dark'
+        <div className={`rounded-2xl p-4 sm:p-5 flex flex-col justify-between border ${theme === 'dark'
             ? 'bg-[#111722] border-white/10 shadow-[0_8px_24px_rgba(0,0,0,0.55)]'
             : 'bg-[#ebf0f7] border-white/90 shadow-[6px_6px_16px_rgba(166,180,200,0.5),-6px_-6px_16px_#ffffff]'
-        }`}>
+          }`}>
           <div className={`flex items-center justify-between pb-3 border-b ${theme === 'dark' ? 'border-white/10' : 'border-slate-200/60'}`}>
             <div className="flex items-center gap-2.5">
-              <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold shrink-0 shadow-xs border ${
-                theme === 'dark'
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold shrink-0 shadow-xs border ${theme === 'dark'
                   ? 'bg-[#130f1c] border-purple-500/30 text-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.15)]'
                   : 'bg-purple-50 border-purple-200/60 text-purple-600'
-              }`}>
+                }`}>
                 <Activity size={17} />
               </div>
               <span className={`font-extrabold text-xs uppercase tracking-wider leading-tight block ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
                 Total USD<br />Spent
               </span>
             </div>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-              theme === 'dark'
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${theme === 'dark'
                 ? 'bg-[#130f1c] text-purple-400 border-purple-500/30'
                 : 'bg-purple-50 text-purple-700 border-purple-200'
-            }`}>
+              }`}>
               USD Out
             </span>
           </div>
@@ -3956,29 +3945,26 @@ function DashboardView({
         </div>
 
         {/* CARD 3: NET AGENCY PROFIT */}
-        <div className={`rounded-2xl p-4 sm:p-5 flex flex-col justify-between border ${
-          theme === 'dark'
+        <div className={`rounded-2xl p-4 sm:p-5 flex flex-col justify-between border ${theme === 'dark'
             ? 'bg-[#111722] border-white/10 shadow-[0_8px_24px_rgba(0,0,0,0.55)]'
             : 'bg-[#ebf0f7] border-white/90 shadow-[6px_6px_16px_rgba(166,180,200,0.5),-6px_-6px_16px_#ffffff]'
-        }`}>
+          }`}>
           <div className={`flex items-center justify-between pb-3 border-b ${theme === 'dark' ? 'border-white/10' : 'border-slate-200/60'}`}>
             <div className="flex items-center gap-2.5">
-              <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold shrink-0 shadow-xs border ${
-                theme === 'dark'
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold shrink-0 shadow-xs border ${theme === 'dark'
                   ? 'bg-[#091422] border-sky-500/30 text-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.15)]'
                   : 'bg-sky-50 border-sky-200/60 text-sky-600'
-              }`}>
+                }`}>
                 <TrendingUp size={17} />
               </div>
               <span className={`font-extrabold text-xs uppercase tracking-wider leading-tight block ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
                 Net Agency<br />Profit
               </span>
             </div>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-              theme === 'dark'
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${theme === 'dark'
                 ? 'bg-[#091422] text-sky-400 border-sky-500/30'
                 : 'bg-sky-50 text-sky-700 border-sky-200'
-            }`}>
+              }`}>
               Net BDT
             </span>
           </div>
@@ -4008,29 +3994,26 @@ function DashboardView({
         </div>
 
         {/* CARD 4: TOTAL CARD BALANCE */}
-        <div className={`rounded-2xl p-4 sm:p-5 flex flex-col justify-between border ${
-          theme === 'dark'
+        <div className={`rounded-2xl p-4 sm:p-5 flex flex-col justify-between border ${theme === 'dark'
             ? 'bg-[#111722] border-white/10 shadow-[0_8px_24px_rgba(0,0,0,0.55)]'
             : 'bg-[#ebf0f7] border-white/90 shadow-[6px_6px_16px_rgba(166,180,200,0.5),-6px_-6px_16px_#ffffff]'
-        }`}>
+          }`}>
           <div className={`flex items-center justify-between pb-3 border-b ${theme === 'dark' ? 'border-white/10' : 'border-slate-200/60'}`}>
             <div className="flex items-center gap-2.5">
-              <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold shrink-0 shadow-xs border ${
-                totalCardBalance < 0
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold shrink-0 shadow-xs border ${totalCardBalance < 0
                   ? (theme === 'dark' ? 'bg-[#190d14] border-rose-500/30 text-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.15)]' : 'bg-rose-50 border-rose-200/60 text-rose-600')
                   : (theme === 'dark' ? 'bg-[#091422] border-sky-500/30 text-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.15)]' : 'bg-sky-50 border-sky-200/60 text-sky-600')
-              }`}>
+                }`}>
                 <CreditCard size={17} />
               </div>
               <span className={`font-extrabold text-xs uppercase tracking-wider leading-tight block ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
                 Total Card<br />Balance
               </span>
             </div>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-              totalCardBalance < 0
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${totalCardBalance < 0
                 ? (theme === 'dark' ? 'bg-[#190d14] text-rose-400 border-rose-500/30' : 'bg-rose-50 text-rose-700 border-rose-200')
                 : (theme === 'dark' ? 'bg-[#091422] text-sky-400 border-sky-500/30' : 'bg-sky-50 text-sky-700 border-sky-200')
-            }`}>
+              }`}>
               {cards.length} Cards
             </span>
           </div>
@@ -4064,11 +4047,10 @@ function DashboardView({
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
 
         {/* CHART 1: Revenue vs Ad Burn Trajectory (8 Cols) */}
-        <div className={`xl:col-span-8 rounded-2xl p-5 flex flex-col justify-between border ${
-          theme === 'dark'
+        <div className={`xl:col-span-8 rounded-2xl p-5 flex flex-col justify-between border ${theme === 'dark'
             ? 'bg-[#111722] border-white/10 shadow-[0_8px_24px_rgba(0,0,0,0.55)]'
             : 'bg-[#ebf0f7] border-white/90 shadow-[6px_6px_16px_rgba(166,180,200,0.5),-6px_-6px_16px_#ffffff]'
-        }`}>
+          }`}>
           <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-3 border-b ${theme === 'dark' ? 'border-white/10' : 'border-slate-200/60'}`}>
             <div>
               <h3 className={`font-extrabold text-sm tracking-tight flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
@@ -4115,7 +4097,7 @@ function DashboardView({
                     axisLine={false}
                     tickLine={false}
                     tick={{ fill: theme === 'dark' ? '#94a3b8' : '#64748b', fontSize: 10.5, fontWeight: 700 }}
-                    tickFormatter={(v) => `৳${v >= 1000 ? `${(v/1000).toFixed(0)}k` : v}`}
+                    tickFormatter={(v) => `৳${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`}
                   />
                   <Tooltip
                     content={({ active, payload, label }) => {
@@ -4172,11 +4154,10 @@ function DashboardView({
         </div>
 
         {/* CHART 2: Cybernetic Concentric Radial Burn HUD (4 Cols) */}
-        <div className={`xl:col-span-4 rounded-2xl p-5 flex flex-col justify-between border ${
-          theme === 'dark'
+        <div className={`xl:col-span-4 rounded-2xl p-5 flex flex-col justify-between border ${theme === 'dark'
             ? 'bg-[#111722] border-white/10 shadow-[0_8px_24px_rgba(0,0,0,0.55)]'
             : 'bg-[#ebf0f7] border-white/90 shadow-[6px_6px_16px_rgba(166,180,200,0.5),-6px_-6px_16px_#ffffff]'
-        }`}>
+          }`}>
           <div className={`mb-2 pb-3 border-b flex items-center justify-between ${theme === 'dark' ? 'border-white/10' : 'border-slate-200/60'}`}>
             <div>
               <h3 className={`font-extrabold text-sm tracking-tight flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
@@ -4185,11 +4166,10 @@ function DashboardView({
               </h3>
               <p className="text-[11px] text-slate-400 font-medium">Meta Ads, 15% VAT, and bank fees.</p>
             </div>
-            <span className={`px-2 py-0.5 rounded-full border text-[10px] font-bold ${
-              theme === 'dark'
+            <span className={`px-2 py-0.5 rounded-full border text-[10px] font-bold ${theme === 'dark'
                 ? 'bg-[#130f1c] border-purple-500/30 text-purple-400'
                 : 'bg-[#ebf0f7] border-white shadow-[inset_2px_2px_4px_rgba(166,180,200,0.4),inset_-2px_-2px_4px_#ffffff] text-purple-700'
-            }`}>
+              }`}>
               Concentric HUD
             </span>
           </div>
@@ -4332,14 +4312,12 @@ function DashboardView({
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
 
         {/* TABLE 1: CLIENT P&L PERFORMANCE (6 Cols) */}
-        <div className={`xl:col-span-6 rounded-2xl overflow-hidden flex flex-col border ${
-          theme === 'dark'
+        <div className={`xl:col-span-6 rounded-2xl overflow-hidden flex flex-col border ${theme === 'dark'
             ? 'bg-[#111722] border-white/10 shadow-[0_8px_24px_rgba(0,0,0,0.55)]'
             : 'bg-[#ebf0f7] border-white/90 shadow-[6px_6px_16px_rgba(166,180,200,0.5),-6px_-6px_16px_#ffffff]'
-        }`}>
-          <div className={`px-5 py-3.5 border-b flex items-center justify-between ${
-            theme === 'dark' ? 'bg-[#0d121b] border-white/10' : 'bg-[#e5edf6] border-slate-200/60'
           }`}>
+          <div className={`px-5 py-3.5 border-b flex items-center justify-between ${theme === 'dark' ? 'bg-[#0d121b] border-white/10' : 'bg-[#e5edf6] border-slate-200/60'
+            }`}>
             <div>
               <h3 className={`font-black text-xs uppercase tracking-wider ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Client P&L Performance</h3>
               <p className="text-[10.5px] text-slate-400 font-medium">Top client accounts, revenue collected & net margin.</p>
@@ -4347,11 +4325,10 @@ function DashboardView({
             {onNavigate && (
               <button
                 onClick={() => onNavigate('clients')}
-                className={`px-2.5 py-1 rounded-xl text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer border ${
-                  theme === 'dark'
+                className={`px-2.5 py-1 rounded-xl text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer border ${theme === 'dark'
                     ? 'bg-[#182235] border-sky-500/30 text-sky-400 shadow-none'
                     : 'bg-[#ebf0f7] border-white text-sky-600 shadow-[2px_2px_5px_rgba(166,180,200,0.4),-2px_-2px_5px_#ffffff]'
-                }`}
+                  }`}
               >
                 <span>All Clients</span>
                 <ChevronRight size={13} className={theme === 'dark' ? 'text-sky-400' : 'text-sky-600'} />
@@ -4361,9 +4338,8 @@ function DashboardView({
 
           <div className="overflow-y-auto overflow-x-hidden flex-1 max-h-[360px] no-scrollbar">
             <table className="table-fixed w-full text-xs text-left">
-              <thead className={`sticky top-0 uppercase tracking-wider text-[9.5px] font-bold border-b ${
-                theme === 'dark' ? 'bg-[#0a0d14] text-slate-400 border-white/10' : 'bg-[#ebf0f7] text-slate-500 border-slate-200'
-              }`}>
+              <thead className={`sticky top-0 uppercase tracking-wider text-[9.5px] font-bold border-b ${theme === 'dark' ? 'bg-[#0a0d14] text-slate-400 border-white/10' : 'bg-[#ebf0f7] text-slate-500 border-slate-200'
+                }`}>
                 <tr>
                   <th className="w-[28%] pl-5 pr-2 py-3 text-left">Client & Brand</th>
                   <th className="w-[21%] px-3 py-3 text-right">Revenue</th>
@@ -4384,11 +4360,10 @@ function DashboardView({
                   >
                     <td className="w-[28%] pl-5 pr-2 py-3 text-left">
                       <div className="flex items-center gap-2.5">
-                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 transition-colors shadow-xs ${
-                          theme === 'dark'
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 transition-colors shadow-xs ${theme === 'dark'
                             ? 'bg-sky-950/60 text-sky-400 border border-sky-500/30 group-hover:bg-sky-600 group-hover:text-white'
                             : 'bg-sky-100 text-sky-700 group-hover:bg-sky-600 group-hover:text-white'
-                        }`}>
+                          }`}>
                           {row.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">
@@ -4403,13 +4378,12 @@ function DashboardView({
                       {formatBDT(row.profit)}
                     </td>
                     <td className="w-[13%] pl-2 pr-5 py-3 text-right">
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                        row.margin > 50
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold border ${row.margin > 50
                           ? (theme === 'dark' ? 'bg-[#0a1510] text-emerald-400 border-emerald-500/30' : 'bg-emerald-50 text-emerald-700 border-emerald-200')
                           : row.margin < 0
-                          ? (theme === 'dark' ? 'bg-[#190d14] text-rose-400 border-rose-500/30' : 'bg-rose-50 text-rose-700 border-rose-200')
-                          : (theme === 'dark' ? 'bg-[#182235] text-slate-300 border-white/10' : 'bg-white/80 text-slate-700 border-slate-200')
-                      }`}>
+                            ? (theme === 'dark' ? 'bg-[#190d14] text-rose-400 border-rose-500/30' : 'bg-rose-50 text-rose-700 border-rose-200')
+                            : (theme === 'dark' ? 'bg-[#182235] text-slate-300 border-white/10' : 'bg-white/80 text-slate-700 border-slate-200')
+                        }`}>
                         {row.margin.toFixed(1)}%
                       </span>
                     </td>
@@ -4421,14 +4395,12 @@ function DashboardView({
         </div>
 
         {/* TABLE 2: CARD LIQUIDITY & BURN (6 Cols) */}
-        <div className={`xl:col-span-6 rounded-2xl overflow-hidden flex flex-col border ${
-          theme === 'dark'
+        <div className={`xl:col-span-6 rounded-2xl overflow-hidden flex flex-col border ${theme === 'dark'
             ? 'bg-[#111722] border-white/10 shadow-[0_8px_24px_rgba(0,0,0,0.55)]'
             : 'bg-[#ebf0f7] border-white/90 shadow-[6px_6px_16px_rgba(166,180,200,0.5),-6px_-6px_16px_#ffffff]'
-        }`}>
-          <div className={`px-5 py-3.5 border-b flex items-center justify-between ${
-            theme === 'dark' ? 'bg-[#0d121b] border-white/10' : 'bg-[#e5edf6] border-slate-200/60'
           }`}>
+          <div className={`px-5 py-3.5 border-b flex items-center justify-between ${theme === 'dark' ? 'bg-[#0d121b] border-white/10' : 'bg-[#e5edf6] border-slate-200/60'
+            }`}>
             <div>
               <h3 className={`font-black text-xs uppercase tracking-wider ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Card Liquidity & Burn</h3>
               <p className="text-[10.5px] text-slate-400 font-medium">USD funded, burned, and live spendable balances.</p>
@@ -4436,11 +4408,10 @@ function DashboardView({
             {onNavigate && (
               <button
                 onClick={() => onNavigate('cards')}
-                className={`px-2.5 py-1 rounded-xl text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer border ${
-                  theme === 'dark'
+                className={`px-2.5 py-1 rounded-xl text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer border ${theme === 'dark'
                     ? 'bg-[#182235] border-sky-500/30 text-sky-400 shadow-none'
                     : 'bg-[#ebf0f7] border-white text-sky-600 shadow-[2px_2px_5px_rgba(166,180,200,0.4),-2px_-2px_5px_#ffffff]'
-                }`}
+                  }`}
               >
                 <span>All Cards</span>
                 <ChevronRight size={13} className={theme === 'dark' ? 'text-sky-400' : 'text-sky-600'} />
@@ -4450,9 +4421,8 @@ function DashboardView({
 
           <div className="overflow-y-auto overflow-x-hidden flex-1 max-h-[360px] no-scrollbar">
             <table className="table-fixed w-full text-xs text-left">
-              <thead className={`sticky top-0 uppercase tracking-wider text-[9.5px] font-bold border-b ${
-                theme === 'dark' ? 'bg-[#0a0d14] text-slate-400 border-white/10' : 'bg-[#ebf0f7] text-slate-500 border-slate-200'
-              }`}>
+              <thead className={`sticky top-0 uppercase tracking-wider text-[9.5px] font-bold border-b ${theme === 'dark' ? 'bg-[#0a0d14] text-slate-400 border-white/10' : 'bg-[#ebf0f7] text-slate-500 border-slate-200'
+                }`}>
                 <tr>
                   <th className="w-[32%] pl-5 pr-2 py-3 text-left">Card & Provider</th>
                   <th className="w-[23%] px-3 py-3 text-right">USD Funded</th>
@@ -4506,11 +4476,10 @@ function DashboardView({
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
 
         {/* REAL-TIME MOVEMENT STREAM (7 Cols) */}
-        <div className={`xl:col-span-7 rounded-2xl p-5 flex flex-col justify-between border ${
-          theme === 'dark'
+        <div className={`xl:col-span-7 rounded-2xl p-5 flex flex-col justify-between border ${theme === 'dark'
             ? 'bg-[#111722] border-white/10 shadow-[0_8px_24px_rgba(0,0,0,0.55)]'
             : 'bg-[#ebf0f7] border-white/90 shadow-[6px_6px_16px_rgba(166,180,200,0.5),-6px_-6px_16px_#ffffff]'
-        }`}>
+          }`}>
           <div className={`flex items-center justify-between pb-3 border-b ${theme === 'dark' ? 'border-white/10' : 'border-slate-200/60'}`}>
             <div>
               <h3 className={`font-black text-xs uppercase tracking-wider ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Live Movement Stream</h3>
@@ -4519,11 +4488,10 @@ function DashboardView({
             {onNavigate && (
               <button
                 onClick={() => onNavigate('ledger')}
-                className={`px-2.5 py-1 rounded-xl text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer border ${
-                  theme === 'dark'
+                className={`px-2.5 py-1 rounded-xl text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer border ${theme === 'dark'
                     ? 'bg-[#182235] border-sky-500/30 text-sky-400 shadow-none'
                     : 'bg-[#ebf0f7] border-white text-sky-600 shadow-[2px_2px_5px_rgba(166,180,200,0.4),-2px_-2px_5px_#ffffff]'
-                }`}
+                  }`}
               >
                 <span>Full Ledger</span>
                 <ChevronRight size={13} className={theme === 'dark' ? 'text-sky-400' : 'text-sky-600'} />
@@ -4548,17 +4516,16 @@ function DashboardView({
               return (
                 <div key={tx.id} className={`py-2.5 flex items-center justify-between gap-3 px-2 rounded-xl transition-colors ${theme === 'dark' ? 'hover:bg-white/[0.03]' : 'hover:bg-white/60'}`}>
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-xs border ${
-                      theme === 'dark'
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-xs border ${theme === 'dark'
                         ? (isPayment ? 'bg-[#0a1510] border-emerald-500/30 text-emerald-400' :
-                           isUSD ? 'bg-[#091422] border-sky-500/30 text-sky-400' :
-                           isAds ? 'bg-[#130f1c] border-purple-500/30 text-purple-400' :
-                           'bg-[#181308] border-amber-500/30 text-amber-400')
+                          isUSD ? 'bg-[#091422] border-sky-500/30 text-sky-400' :
+                            isAds ? 'bg-[#130f1c] border-purple-500/30 text-purple-400' :
+                              'bg-[#181308] border-amber-500/30 text-amber-400')
                         : (isPayment ? 'bg-emerald-50 border-emerald-200/60 text-emerald-600' :
-                           isUSD ? 'bg-sky-50 border-sky-200/60 text-sky-600' :
-                           isAds ? 'bg-purple-50 border-purple-200/60 text-purple-600' :
-                           'bg-amber-50 border-amber-200/60 text-amber-600')
-                    }`}>
+                          isUSD ? 'bg-sky-50 border-sky-200/60 text-sky-600' :
+                            isAds ? 'bg-purple-50 border-purple-200/60 text-purple-600' :
+                              'bg-amber-50 border-amber-200/60 text-amber-600')
+                      }`}>
                       {isPayment && <ArrowDownLeft size={16} />}
                       {isUSD && <DollarSign size={16} />}
                       {isAds && <Activity size={16} />}
@@ -4575,17 +4542,16 @@ function DashboardView({
                   </div>
 
                   <div className="text-right shrink-0">
-                    <div className={`font-black text-xs ${
-                      isIn
+                    <div className={`font-black text-xs ${isIn
                         ? (theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600')
                         : isAds
-                        ? (theme === 'dark' ? 'text-purple-400' : 'text-purple-700')
-                        : (theme === 'dark' ? 'text-white' : 'text-slate-900')
-                    }`}>
+                          ? (theme === 'dark' ? 'text-purple-400' : 'text-purple-700')
+                          : (theme === 'dark' ? 'text-white' : 'text-slate-900')
+                      }`}>
                       {isPayment ? `+${formatBDT(tx.amountBDT)}` :
-                       isUSD ? `+${formatUSD(tx.amountUSD)}` :
-                       isAds ? `-${formatUSD(parseFloat(tx.amountUSD || 0) + parseFloat(tx.taxUSD || 0))}` :
-                       `-${formatUSD(tx.amountUSD)}`}
+                        isUSD ? `+${formatUSD(tx.amountUSD)}` :
+                          isAds ? `-${formatUSD(parseFloat(tx.amountUSD || 0) + parseFloat(tx.taxUSD || 0))}` :
+                            `-${formatUSD(tx.amountUSD)}`}
                     </div>
                     <div className="text-[9.5px] font-mono text-slate-400">#{String(tx.id).slice(-6)}</div>
                   </div>
@@ -4601,11 +4567,10 @@ function DashboardView({
         </div>
 
         {/* QUICK STATS SNAPSHOT (5 Cols) */}
-        <div className={`xl:col-span-5 rounded-2xl p-5 flex flex-col justify-between border ${
-          theme === 'dark'
+        <div className={`xl:col-span-5 rounded-2xl p-5 flex flex-col justify-between border ${theme === 'dark'
             ? 'bg-[#111722] border-white/10 shadow-[0_8px_24px_rgba(0,0,0,0.55)]'
             : 'bg-[#ebf0f7] border-white/90 shadow-[6px_6px_16px_rgba(166,180,200,0.5),-6px_-6px_16px_#ffffff]'
-        }`}>
+          }`}>
           <div className={`flex items-center justify-between pb-3 border-b ${theme === 'dark' ? 'border-white/10' : 'border-slate-200/60'}`}>
             <div>
               <h3 className={`font-black text-xs uppercase tracking-wider ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Quick Operational Stats</h3>
@@ -4648,32 +4613,29 @@ function DashboardView({
 
       {/* 6. FULL-WIDTH 3-PILLAR OPERATIONAL HEALTH STATUS CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        
+
         {/* CARD 1: CARD LIQUIDITY SAFETY SHIELD */}
-        <div className={`rounded-2xl border p-5 transition-all flex flex-col justify-between ${
-          theme === 'dark'
+        <div className={`rounded-2xl border p-5 transition-all flex flex-col justify-between ${theme === 'dark'
             ? (totalCardBalance < 0
-                ? 'bg-[#180d14] border-rose-500/30 text-rose-300 shadow-[0_4px_14px_rgba(0,0,0,0.5)]'
-                : 'bg-[#0a1b16] border-emerald-500/30 text-emerald-300 shadow-[0_4px_14px_rgba(0,0,0,0.5)]')
+              ? 'bg-[#180d14] border-rose-500/30 text-rose-300 shadow-[0_4px_14px_rgba(0,0,0,0.5)]'
+              : 'bg-[#0a1b16] border-emerald-500/30 text-emerald-300 shadow-[0_4px_14px_rgba(0,0,0,0.5)]')
             : (totalCardBalance < 0
-                ? 'bg-[#ebf0f7] border-rose-200/90 text-rose-950 shadow-[5px_5px_14px_rgba(166,180,200,0.45),-5px_-5px_14px_#ffffff]'
-                : 'bg-[#ebf0f7] border-emerald-200/90 text-emerald-950 shadow-[5px_5px_14px_rgba(166,180,200,0.45),-5px_-5px_14px_#ffffff]')
-        }`}>
+              ? 'bg-[#ebf0f7] border-rose-200/90 text-rose-950 shadow-[5px_5px_14px_rgba(166,180,200,0.45),-5px_-5px_14px_#ffffff]'
+              : 'bg-[#ebf0f7] border-emerald-200/90 text-emerald-950 shadow-[5px_5px_14px_rgba(166,180,200,0.45),-5px_-5px_14px_#ffffff]')
+          }`}>
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold shrink-0 shadow-xs border ${
-                totalCardBalance < 0
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold shrink-0 shadow-xs border ${totalCardBalance < 0
                   ? (theme === 'dark' ? 'bg-rose-950/60 border-rose-500/40 text-rose-400' : 'bg-rose-100/80 border-rose-200 text-rose-700')
                   : (theme === 'dark' ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-400' : 'bg-emerald-100/80 border-emerald-200 text-emerald-700')
-              }`}>
+                }`}>
                 {totalCardBalance < 0 ? <AlertCircle size={19} /> : <ShieldCheck size={19} />}
               </div>
               <div>
-                <h4 className={`font-black text-xs uppercase tracking-wider ${
-                  totalCardBalance < 0
+                <h4 className={`font-black text-xs uppercase tracking-wider ${totalCardBalance < 0
                     ? (theme === 'dark' ? 'text-rose-400' : 'text-rose-900')
                     : (theme === 'dark' ? 'text-emerald-400' : 'text-emerald-900')
-                }`}>
+                  }`}>
                   {totalCardBalance < 0 ? 'Card Liquidity Warning' : 'Healthy Card Liquidity'}
                 </h4>
                 <span className={`text-[10px] font-semibold ${theme === 'dark' ? 'opacity-70 text-slate-400' : 'opacity-75'}`}>Virtual Card Reserves</span>
@@ -4681,11 +4643,10 @@ function DashboardView({
             </div>
           </div>
 
-          <p className={`text-xs font-medium mt-3 ${
-            totalCardBalance < 0
+          <p className={`text-xs font-medium mt-3 ${totalCardBalance < 0
               ? (theme === 'dark' ? 'text-rose-300/90' : 'text-rose-800/90')
               : (theme === 'dark' ? 'text-emerald-300/90' : 'text-emerald-800/90')
-          }`}>
+            }`}>
             {totalCardBalance < 0
               ? `Virtual card balance is in deficit by ${formatUSD(Math.abs(totalCardBalance))}. Top up immediately to prevent Meta ad pauses.`
               : `Total spendable balance across all active cards is ${formatUSD(totalCardBalance)}.`}
@@ -4693,15 +4654,13 @@ function DashboardView({
         </div>
 
         {/* CARD 2: REVENUE INFLOW HEALTH */}
-        <div className={`rounded-2xl border p-5 flex flex-col justify-between ${
-          theme === 'dark'
+        <div className={`rounded-2xl border p-5 flex flex-col justify-between ${theme === 'dark'
             ? 'border-emerald-500/30 bg-[#0a1b16] text-emerald-300 shadow-[0_4px_14px_rgba(0,0,0,0.5)]'
             : 'border-emerald-200/80 bg-[#ebf0f7] text-emerald-900 shadow-[5px_5px_14px_rgba(166,180,200,0.45),-5px_-5px_14px_#ffffff]'
-        }`}>
+          }`}>
           <div className="flex items-center gap-3">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold shrink-0 shadow-xs border ${
-              theme === 'dark' ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-400' : 'bg-emerald-100/80 border-emerald-200 text-emerald-700'
-            }`}>
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold shrink-0 shadow-xs border ${theme === 'dark' ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-400' : 'bg-emerald-100/80 border-emerald-200 text-emerald-700'
+              }`}>
               <CheckCircle2 size={19} />
             </div>
             <div>
@@ -4717,15 +4676,13 @@ function DashboardView({
         </div>
 
         {/* CARD 3: PROFIT & MARGIN SNAPSHOT */}
-        <div className={`rounded-2xl border p-5 flex flex-col justify-between ${
-          theme === 'dark'
+        <div className={`rounded-2xl border p-5 flex flex-col justify-between ${theme === 'dark'
             ? 'border-sky-500/30 bg-[#0c1626] text-sky-300 shadow-[0_4px_14px_rgba(0,0,0,0.5)]'
             : 'border-blue-200/80 bg-[#ebf0f7] text-blue-900 shadow-[5px_5px_14px_rgba(166,180,200,0.45),-5px_-5px_14px_#ffffff]'
-        }`}>
+          }`}>
           <div className="flex items-center gap-3">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold shrink-0 shadow-xs border ${
-              theme === 'dark' ? 'bg-sky-950/60 border-sky-500/40 text-sky-400' : 'bg-blue-100/80 border-blue-200 text-blue-700'
-            }`}>
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold shrink-0 shadow-xs border ${theme === 'dark' ? 'bg-sky-950/60 border-sky-500/40 text-sky-400' : 'bg-blue-100/80 border-blue-200 text-blue-700'
+              }`}>
               <TrendingUp size={19} />
             </div>
             <div>
@@ -5261,13 +5218,13 @@ function LedgerView({ transactions, clients, cards, metrics, onDeleteTransaction
           </thead>
           <tbody>
             ${filtered.map(tx => {
-              const client = clients.find(c => c.id === tx.clientId);
-              const card = cards.find(c => c.id === tx.cardId);
-              const bdtIn = tx.type === 'PAYMENT_RECEIVED' ? parseFloat(tx.amountBDT || 0) : 0;
-              const bdtOut = tx.type === 'USD_PURCHASE' ? (parseFloat(tx.amountBDT || 0) + parseFloat(tx.cashOutCharge || 0)) : 0;
-              const usdIn = tx.type === 'USD_PURCHASE' ? parseFloat(tx.amountUSD || 0) : 0;
-              const usdOut = tx.type === 'AD_SPEND' ? (parseFloat(tx.amountUSD || 0) + parseFloat(tx.taxUSD || 0)) : (tx.type === 'FEE' ? parseFloat(tx.amountUSD || 0) : 0);
-              return `
+      const client = clients.find(c => c.id === tx.clientId);
+      const card = cards.find(c => c.id === tx.cardId);
+      const bdtIn = tx.type === 'PAYMENT_RECEIVED' ? parseFloat(tx.amountBDT || 0) : 0;
+      const bdtOut = tx.type === 'USD_PURCHASE' ? (parseFloat(tx.amountBDT || 0) + parseFloat(tx.cashOutCharge || 0)) : 0;
+      const usdIn = tx.type === 'USD_PURCHASE' ? parseFloat(tx.amountUSD || 0) : 0;
+      const usdOut = tx.type === 'AD_SPEND' ? (parseFloat(tx.amountUSD || 0) + parseFloat(tx.taxUSD || 0)) : (tx.type === 'FEE' ? parseFloat(tx.amountUSD || 0) : 0);
+      return `
                 <tr>
                   <td>${formatDate(tx.date)}</td>
                   <td style="font-family: monospace; font-weight: bold;">#${String(tx.id).slice(-6)}</td>
@@ -5280,7 +5237,7 @@ function LedgerView({ transactions, clients, cards, metrics, onDeleteTransaction
                   <td style="text-align: right; color: #9333ea; font-weight: bold;">${usdOut > 0 ? formatUSD(usdOut) : '—'}</td>
                 </tr>
               `;
-            }).join('')}
+    }).join('')}
           </tbody>
         </table>
 
@@ -5314,11 +5271,10 @@ function LedgerView({ transactions, clients, cards, metrics, onDeleteTransaction
           <div className="relative" ref={exportMenuRef}>
             <button
               onClick={() => setShowExportMenu(prev => !prev)}
-              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border text-xs font-bold shadow-2xs transition-all ${
-                showExportMenu
+              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border text-xs font-bold shadow-2xs transition-all ${showExportMenu
                   ? 'bg-slate-100 border-slate-300 text-slate-900 ring-2 ring-sky-500/20'
                   : 'bg-white border-slate-200/90 text-slate-700 hover:bg-slate-50'
-              }`}
+                }`}
             >
               <Download size={14} className="text-slate-500" /> Export <ChevronDown size={12} className={`text-slate-400 transition-transform duration-150 ${showExportMenu ? 'rotate-180' : ''}`} />
             </button>
@@ -5460,16 +5416,14 @@ function LedgerView({ transactions, clients, cards, metrics, onDeleteTransaction
               key={chip.id}
               type="button"
               onClick={() => setTypeFilter(chip.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
-                active
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${active
                   ? 'bg-white text-slate-900 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               <span>{chip.label}</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                active ? 'bg-sky-100 text-sky-700 font-extrabold' : 'bg-slate-300/80 text-slate-700'
-              }`}>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${active ? 'bg-sky-100 text-sky-700 font-extrabold' : 'bg-slate-300/80 text-slate-700'
+                }`}>
                 {chip.count}
               </span>
             </button>
@@ -5612,10 +5566,10 @@ function LedgerView({ transactions, clients, cards, metrics, onDeleteTransaction
                   const stripColor = tx.type === 'PAYMENT_RECEIVED'
                     ? 'border-l-4 border-l-emerald-500'
                     : tx.type === 'USD_PURCHASE'
-                    ? 'border-l-4 border-l-sky-500'
-                    : tx.type === 'AD_SPEND'
-                    ? 'border-l-4 border-l-purple-500'
-                    : 'border-l-4 border-l-amber-500';
+                      ? 'border-l-4 border-l-sky-500'
+                      : tx.type === 'AD_SPEND'
+                        ? 'border-l-4 border-l-purple-500'
+                        : 'border-l-4 border-l-amber-500';
 
                   return (
                     <tr
@@ -6179,15 +6133,15 @@ function CardsView({ cards, metrics, transactions, onAddCard, onEditCard, onFund
           </thead>
           <tbody>
             ${filteredUSDPurchases.map(tx => {
-              const bdtPaid = parseFloat(tx.amountBDT || 0);
-              const coRate = parseFloat(tx.cashOutCharge || 0);
-              const usdRcv = parseFloat(tx.amountUSD || 1);
-              const totalCost = bdtPaid + coRate;
-              const baseRate = usdRcv > 0 ? (bdtPaid / usdRcv).toFixed(2) : '0.00';
-              const effectiveRate = usdRcv > 0 ? (totalCost / usdRcv).toFixed(2) : '0.00';
-              const targetCard = cards.find(c => c.id === tx.cardId);
+      const bdtPaid = parseFloat(tx.amountBDT || 0);
+      const coRate = parseFloat(tx.cashOutCharge || 0);
+      const usdRcv = parseFloat(tx.amountUSD || 1);
+      const totalCost = bdtPaid + coRate;
+      const baseRate = usdRcv > 0 ? (bdtPaid / usdRcv).toFixed(2) : '0.00';
+      const effectiveRate = usdRcv > 0 ? (totalCost / usdRcv).toFixed(2) : '0.00';
+      const targetCard = cards.find(c => c.id === tx.cardId);
 
-              return `
+      return `
                 <tr>
                   <td>${formatDate(tx.date)}</td>
                   <td style="font-family: monospace; font-weight: bold;">#${String(tx.id).slice(-6)}</td>
@@ -6201,7 +6155,7 @@ function CardsView({ cards, metrics, transactions, onAddCard, onEditCard, onFund
                   <td style="text-align: right; font-weight: bold; color: #0284c7;">৳${effectiveRate}</td>
                 </tr>
               `;
-            }).join('')}
+    }).join('')}
           </tbody>
         </table>
 
@@ -6504,11 +6458,10 @@ function CardsView({ cards, metrics, transactions, onAddCard, onEditCard, onFund
               <button
                 type="button"
                 onClick={() => setShowExportPurchases(prev => !prev)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold shadow-2xs transition-all ${
-                  showExportPurchases
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold shadow-2xs transition-all ${showExportPurchases
                     ? 'bg-slate-100 border-slate-300 text-slate-900 ring-2 ring-sky-500/20'
                     : 'bg-white border-slate-200/90 text-slate-700 hover:bg-slate-50'
-                }`}
+                  }`}
               >
                 <Download size={13} className="text-slate-500" /> Export <ChevronDown size={11} className={`text-slate-400 transition-transform duration-150 ${showExportPurchases ? 'rotate-180' : ''}`} />
               </button>
@@ -6772,10 +6725,10 @@ function CardDetailsModal({ card, metrics, transactions, onClose }) {
           <tbody>
             ${historyWithBalance.length === 0 ? '<tr><td colspan="5" style="text-align:center; padding: 18px;">No transactions recorded for this period.</td></tr>' : ''}
             ${historyWithBalance.map(tx => {
-              const isAdSpend = tx.type === 'AD_SPEND';
-              const displayAmount = isAdSpend ? -Math.abs(parseFloat(tx.amountUSD)) : parseFloat(tx.amountUSD);
-              const displayTax = isAdSpend ? parseFloat(tx.taxUSD || 0) : 0;
-              return `
+      const isAdSpend = tx.type === 'AD_SPEND';
+      const displayAmount = isAdSpend ? -Math.abs(parseFloat(tx.amountUSD)) : parseFloat(tx.amountUSD);
+      const displayTax = isAdSpend ? parseFloat(tx.taxUSD || 0) : 0;
+      return `
                 <tr>
                   <td>${formatDate(tx.date)}</td>
                   <td style="font-weight: bold;">${tx.type.replaceAll('_', ' ')}</td>
@@ -6789,7 +6742,7 @@ function CardDetailsModal({ card, metrics, transactions, onClose }) {
                   </td>
                 </tr>
               `;
-            }).join('')}
+    }).join('')}
           </tbody>
         </table>
 
@@ -7208,28 +7161,25 @@ function CampaignActionsMenu({ campaign, onInspect, onEdit, onToggleStatus, onDe
     ? createPortal(
       <div
         ref={menuRef}
-        className={`fixed border rounded-xl shadow-2xl z-[99999] p-1.5 animate-in fade-in duration-100 ${
-          isDark
+        className={`fixed border rounded-xl shadow-2xl z-[99999] p-1.5 animate-in fade-in duration-100 ${isDark
             ? 'bg-[#111722] border-white/10 text-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.85)]'
             : 'bg-white border-slate-200/90 text-slate-700'
-        }`}
+          }`}
         style={{ top: menuPosition.top, left: menuPosition.left, width: 208 }}
         role="menu"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <button
           onClick={() => { setIsOpen(false); onInspect(campaign); }}
-          className={`w-full text-left px-3 py-2 text-xs font-semibold rounded-lg flex items-center gap-2.5 transition-colors cursor-pointer border-0 outline-none ${
-            isDark ? 'text-slate-200 hover:bg-white/5 hover:text-sky-400' : 'text-slate-700 hover:bg-sky-50 hover:text-sky-700'
-          }`}
+          className={`w-full text-left px-3 py-2 text-xs font-semibold rounded-lg flex items-center gap-2.5 transition-colors cursor-pointer border-0 outline-none ${isDark ? 'text-slate-200 hover:bg-white/5 hover:text-sky-400' : 'text-slate-700 hover:bg-sky-50 hover:text-sky-700'
+            }`}
         >
           <Eye size={14} className={isDark ? 'text-sky-400' : 'text-sky-600'} /> Deep-Dive Analytics
         </button>
         <button
           onClick={() => { setIsOpen(false); onEdit(campaign); }}
-          className={`w-full text-left px-3 py-2 text-xs font-semibold rounded-lg flex items-center gap-2.5 transition-colors cursor-pointer border-0 outline-none ${
-            isDark ? 'text-slate-200 hover:bg-white/5 hover:text-white' : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
-          }`}
+          className={`w-full text-left px-3 py-2 text-xs font-semibold rounded-lg flex items-center gap-2.5 transition-colors cursor-pointer border-0 outline-none ${isDark ? 'text-slate-200 hover:bg-white/5 hover:text-white' : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+            }`}
         >
           <Edit size={14} className={isDark ? 'text-blue-400' : 'text-blue-600'} /> Edit Campaign
         </button>
@@ -7238,9 +7188,8 @@ function CampaignActionsMenu({ campaign, onInspect, onEdit, onToggleStatus, onDe
             setIsOpen(false);
             onToggleStatus(campaign.id, campaign.status === 'Active' ? 'Paused' : 'Active');
           }}
-          className={`w-full text-left px-3 py-2 text-xs font-semibold rounded-lg flex items-center gap-2.5 transition-colors cursor-pointer border-0 outline-none ${
-            isDark ? 'text-slate-200 hover:bg-white/5 hover:text-white' : 'text-slate-700 hover:bg-slate-50'
-          }`}
+          className={`w-full text-left px-3 py-2 text-xs font-semibold rounded-lg flex items-center gap-2.5 transition-colors cursor-pointer border-0 outline-none ${isDark ? 'text-slate-200 hover:bg-white/5 hover:text-white' : 'text-slate-700 hover:bg-slate-50'
+            }`}
         >
           {campaign.status === 'Active' ? (
             <>
@@ -7257,9 +7206,8 @@ function CampaignActionsMenu({ campaign, onInspect, onEdit, onToggleStatus, onDe
 
         <button
           onClick={() => { setIsOpen(false); onDelete(campaign.id); }}
-          className={`w-full text-left px-3 py-2 text-xs font-semibold rounded-lg flex items-center gap-2.5 transition-colors cursor-pointer border-0 outline-none ${
-            isDark ? 'text-rose-400 hover:bg-rose-500/10' : 'text-rose-600 hover:bg-rose-50'
-          }`}
+          className={`w-full text-left px-3 py-2 text-xs font-semibold rounded-lg flex items-center gap-2.5 transition-colors cursor-pointer border-0 outline-none ${isDark ? 'text-rose-400 hover:bg-rose-500/10' : 'text-rose-600 hover:bg-rose-50'
+            }`}
         >
           <Trash2 size={14} className={isDark ? 'text-rose-400' : 'text-rose-500'} /> Delete Campaign
         </button>
@@ -7413,13 +7361,12 @@ function CampaignDetailsModal({ campaign, clients, transactions, metrics, onClos
           <div className="flex items-center gap-2.5 mb-1 flex-wrap">
             <PlatformBadge platform={campaign.platform} />
             <h2 className="text-xl font-black text-slate-900 tracking-tight">{campaign.name}</h2>
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold flex items-center gap-1.5 ${
-              campaign.status === 'Active'
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold flex items-center gap-1.5 ${campaign.status === 'Active'
                 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200/80'
                 : campaign.status === 'Completed'
                   ? 'bg-sky-100 text-sky-800 border border-sky-200/80'
                   : 'bg-amber-100 text-amber-800 border border-amber-200/80'
-            }`}>
+              }`}>
               {campaign.status === 'Active' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
               {campaign.status || 'Active'}
             </span>
@@ -7994,11 +7941,10 @@ function CampaignsView({ campaigns = [], clients = [], transactions = [], metric
           <div className="relative" ref={exportMenuRef}>
             <button
               onClick={() => setShowExportMenu(prev => !prev)}
-              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border text-xs font-bold shadow-2xs transition-all cursor-pointer ${
-                showExportMenu
+              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border text-xs font-bold shadow-2xs transition-all cursor-pointer ${showExportMenu
                   ? 'bg-slate-100 border-slate-300 text-slate-900 ring-2 ring-sky-500/20'
                   : 'bg-white border-slate-200/90 text-slate-700 hover:bg-slate-50'
-              }`}
+                }`}
             >
               <Download size={14} className="text-slate-500" /> Export <ChevronDown size={12} className={`text-slate-400 transition-transform duration-150 ${showExportMenu ? 'rotate-180' : ''}`} />
             </button>
@@ -8108,16 +8054,14 @@ function CampaignsView({ campaigns = [], clients = [], transactions = [], metric
               key={tab.id}
               type="button"
               onClick={() => setPlatformFilter(tab.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
-                active
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${active
                   ? 'bg-white text-slate-900 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               <span>{tab.label}</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                active ? 'bg-sky-100 text-sky-700 font-extrabold' : 'bg-slate-300/80 text-slate-700'
-              }`}>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${active ? 'bg-sky-100 text-sky-700 font-extrabold' : 'bg-slate-300/80 text-slate-700'
+                }`}>
                 {tab.count}
               </span>
             </button>
@@ -8272,27 +8216,25 @@ function CampaignsView({ campaigns = [], clients = [], transactions = [], metric
                       </td>
 
                       <td className="px-4 py-3.5 text-right">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-black ${
-                          c.roas === 0
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-black ${c.roas === 0
                             ? 'bg-slate-100 text-slate-500'
                             : isHighROAS
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/80'
                               : c.roas >= 1.5
                                 ? 'bg-sky-50 text-sky-700 border border-sky-200/80'
                                 : 'bg-rose-50 text-rose-700 border border-rose-200/80'
-                        }`}>
+                          }`}>
                           {c.roas ? `${c.roas.toFixed(2)}x` : '—'}
                         </span>
                       </td>
 
                       <td className="px-4 py-3.5 text-center">
-                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
-                          c.status === 'Active'
+                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold ${c.status === 'Active'
                             ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60'
                             : c.status === 'Completed'
                               ? 'bg-blue-50 text-blue-700 border border-blue-200/60'
                               : 'bg-amber-50 text-amber-700 border border-amber-200/60'
-                        }`}>
+                          }`}>
                           {c.status === 'Active' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
                           {c.status || 'Active'}
                         </span>
@@ -8565,100 +8507,100 @@ function IntegrationsView({ clients = [], transactions = [], workspaceSettings =
         return (
           <svg width={size} height={size} viewBox="0 0 288 192" fill="none">
             <linearGradient id="metaGrad1" gradientTransform="matrix(1 0 0 -1 0 192)" gradientUnits="userSpaceOnUse" x1="62.34" x2="260.34" y1="101.45" y2="91.45">
-              <stop offset="0" stopColor="#0064e1"/>
-              <stop offset=".4" stopColor="#0064e1"/>
-              <stop offset=".83" stopColor="#0073ee"/>
-              <stop offset="1" stopColor="#0082fb"/>
+              <stop offset="0" stopColor="#0064e1" />
+              <stop offset=".4" stopColor="#0064e1" />
+              <stop offset=".83" stopColor="#0073ee" />
+              <stop offset="1" stopColor="#0082fb" />
             </linearGradient>
             <linearGradient id="metaGrad2" gradientTransform="matrix(1 0 0 -1 0 192)" gradientUnits="userSpaceOnUse" x1="41.42" x2="41.42" y1="53" y2="126">
-              <stop offset="0" stopColor="#0082fb"/>
-              <stop offset="1" stopColor="#0064e0"/>
+              <stop offset="0" stopColor="#0082fb" />
+              <stop offset="1" stopColor="#0064e0" />
             </linearGradient>
-            <path d="M31.06 126c0 11 2.41 19.41 5.56 24.51A19 19 0 0 0 53.19 160c8.1 0 15.51-2 29.79-21.76 11.44-15.83 24.92-38 34-52l15.36-23.6c10.67-16.39 23-34.61 37.18-47C181.07 5.6 193.54 0 206.09 0c21.07 0 41.14 12.21 56.5 35.11 16.81 25.08 25 56.67 25 89.27 0 19.38-3.82 33.62-10.32 44.87C271 180.13 258.72 191 238.13 191v-31c17.63 0 22-16.2 22-34.74 0-26.42-6.16-55.74-19.73-76.69-9.63-14.86-22.11-23.94-35.84-23.94-14.85 0-26.8 11.2-40.23 31.17-7.14 10.61-14.47 23.54-22.7 38.13l-9.06 16c-18.2 32.27-22.81 39.62-31.91 51.75C84.74 183 71.12 191 53.19 191c-21.27 0-34.72-9.21-43-23.09C3.34 156.6 0 141.76 0 124.85z" fill="#0081fb"/>
-            <path d="M24.49 37.3C38.73 15.35 59.28 0 82.85 0c13.65 0 27.22 4 41.39 15.61 15.5 12.65 32 33.48 52.63 67.81l7.39 12.32c17.84 29.72 28 45 33.93 52.22 7.64 9.26 13 12 19.94 12 17.63 0 22-16.2 22-34.74l27.4-.86c0 19.38-3.82 33.62-10.32 44.87C271 180.13 258.72 191 238.13 191c-12.8 0-24.14-2.78-36.68-14.61-9.64-9.08-20.91-25.21-29.58-39.71L146.08 93.6c-12.94-21.62-24.81-37.74-31.68-45-7.4-7.89-16.89-17.37-32.05-17.37-12.27 0-22.69 8.61-31.41 21.78z" fill="url(#metaGrad1)"/>
-            <path d="M82.35 31.23c-12.27 0-22.69 8.61-31.41 21.78C38.61 71.62 31.06 99.34 31.06 126c0 11 2.41 19.41 5.56 24.51l-26.48 17.4C3.34 156.6 0 141.76 0 124.85 0 94.1 8.44 62.05 24.49 37.3 38.73 15.35 59.28 0 82.85 0z" fill="url(#metaGrad2)"/>
+            <path d="M31.06 126c0 11 2.41 19.41 5.56 24.51A19 19 0 0 0 53.19 160c8.1 0 15.51-2 29.79-21.76 11.44-15.83 24.92-38 34-52l15.36-23.6c10.67-16.39 23-34.61 37.18-47C181.07 5.6 193.54 0 206.09 0c21.07 0 41.14 12.21 56.5 35.11 16.81 25.08 25 56.67 25 89.27 0 19.38-3.82 33.62-10.32 44.87C271 180.13 258.72 191 238.13 191v-31c17.63 0 22-16.2 22-34.74 0-26.42-6.16-55.74-19.73-76.69-9.63-14.86-22.11-23.94-35.84-23.94-14.85 0-26.8 11.2-40.23 31.17-7.14 10.61-14.47 23.54-22.7 38.13l-9.06 16c-18.2 32.27-22.81 39.62-31.91 51.75C84.74 183 71.12 191 53.19 191c-21.27 0-34.72-9.21-43-23.09C3.34 156.6 0 141.76 0 124.85z" fill="#0081fb" />
+            <path d="M24.49 37.3C38.73 15.35 59.28 0 82.85 0c13.65 0 27.22 4 41.39 15.61 15.5 12.65 32 33.48 52.63 67.81l7.39 12.32c17.84 29.72 28 45 33.93 52.22 7.64 9.26 13 12 19.94 12 17.63 0 22-16.2 22-34.74l27.4-.86c0 19.38-3.82 33.62-10.32 44.87C271 180.13 258.72 191 238.13 191c-12.8 0-24.14-2.78-36.68-14.61-9.64-9.08-20.91-25.21-29.58-39.71L146.08 93.6c-12.94-21.62-24.81-37.74-31.68-45-7.4-7.89-16.89-17.37-32.05-17.37-12.27 0-22.69 8.61-31.41 21.78z" fill="url(#metaGrad1)" />
+            <path d="M82.35 31.23c-12.27 0-22.69 8.61-31.41 21.78C38.61 71.62 31.06 99.34 31.06 126c0 11 2.41 19.41 5.56 24.51l-26.48 17.4C3.34 156.6 0 141.76 0 124.85 0 94.1 8.44 62.05 24.49 37.3 38.73 15.35 59.28 0 82.85 0z" fill="url(#metaGrad2)" />
           </svg>
         );
       case 'GoogleAds':
         return (
           <svg width={size} height={size} viewBox="0 0 251 240" fill="none">
-            <path d="M85.9,28.6c2.4-6.3,5.7-12.1,10.6-16.8c19.6-19.1,52-14.3,65.3,9.7c10,18.2,20.6,36,30.9,54c17.2,29.9,34.6,59.8,51.6,89.8c14.3,25.1-1.2,56.8-29.6,61.1c-17.4,2.6-33.7-5.4-42.7-21c-15.1-26.3-30.3-52.6-45.4-78.8c-0.3-0.6-0.7-1.1-1.1-1.6c-1.6-1.3-2.3-3.2-3.3-4.9c-6.7-11.8-13.6-23.5-20.3-35.2c-4.3-7.6-8.8-15.1-13.1-22.7c-3.9-6.8-5.7-14.2-5.5-22C83.6,36.2,84.1,32.2,85.9,28.6" fill="#4285F4"/>
-            <path d="M85.9,28.6c-0.9,3.6-1.7,7.2-1.9,11c-0.3,8.4,1.8,16.2,6,23.5C101,82,112,101,122.9,120c1,1.7,1.8,3.4,2.8,5c-6,10.4-12,20.7-18.1,31.1c-8.4,14.5-16.8,29.1-25.3,43.6c-0.4,0-0.5-0.2-0.6-0.5c-0.1-0.8,0.2-1.5,0.4-2.3c4.1-15,0.7-28.3-9.6-39.7c-6.3-6.9-14.3-10.8-23.5-12.1c-12-1.7-22.6,1.4-32.1,8.9c-1.7,1.3-2.8,3.2-4.8,4.2c-0.4,0-0.6-0.2-0.7-0.5c4.8-8.3,9.5-16.6,14.3-24.9C45.5,98.4,65.3,64,85.2,29.7C85.4,29.3,85.7,29,85.9,28.6" fill="#FBBC04"/>
-            <path d="M11.8,158c1.9-1.7,3.7-3.5,5.7-5.1c24.3-19.2,60.8-5.3,66.1,25.1c1.3,7.3,0.6,14.3-1.6,21.3c-0.1,0.6-0.2,1.1-0.4,1.7c-0.9,1.6-1.7,3.3-2.7,4.9c-8.9,14.7-22,22-39.2,20.9C20,225.4,4.5,210.6,1.8,191c-1.3-9.5,0.6-18.4,5.5-26.6c1-1.8,2.2-3.4,3.3-5.2C11.1,158.8,10.9,158,11.8,158" fill="#34A853"/>
+            <path d="M85.9,28.6c2.4-6.3,5.7-12.1,10.6-16.8c19.6-19.1,52-14.3,65.3,9.7c10,18.2,20.6,36,30.9,54c17.2,29.9,34.6,59.8,51.6,89.8c14.3,25.1-1.2,56.8-29.6,61.1c-17.4,2.6-33.7-5.4-42.7-21c-15.1-26.3-30.3-52.6-45.4-78.8c-0.3-0.6-0.7-1.1-1.1-1.6c-1.6-1.3-2.3-3.2-3.3-4.9c-6.7-11.8-13.6-23.5-20.3-35.2c-4.3-7.6-8.8-15.1-13.1-22.7c-3.9-6.8-5.7-14.2-5.5-22C83.6,36.2,84.1,32.2,85.9,28.6" fill="#4285F4" />
+            <path d="M85.9,28.6c-0.9,3.6-1.7,7.2-1.9,11c-0.3,8.4,1.8,16.2,6,23.5C101,82,112,101,122.9,120c1,1.7,1.8,3.4,2.8,5c-6,10.4-12,20.7-18.1,31.1c-8.4,14.5-16.8,29.1-25.3,43.6c-0.4,0-0.5-0.2-0.6-0.5c-0.1-0.8,0.2-1.5,0.4-2.3c4.1-15,0.7-28.3-9.6-39.7c-6.3-6.9-14.3-10.8-23.5-12.1c-12-1.7-22.6,1.4-32.1,8.9c-1.7,1.3-2.8,3.2-4.8,4.2c-0.4,0-0.6-0.2-0.7-0.5c4.8-8.3,9.5-16.6,14.3-24.9C45.5,98.4,65.3,64,85.2,29.7C85.4,29.3,85.7,29,85.9,28.6" fill="#FBBC04" />
+            <path d="M11.8,158c1.9-1.7,3.7-3.5,5.7-5.1c24.3-19.2,60.8-5.3,66.1,25.1c1.3,7.3,0.6,14.3-1.6,21.3c-0.1,0.6-0.2,1.1-0.4,1.7c-0.9,1.6-1.7,3.3-2.7,4.9c-8.9,14.7-22,22-39.2,20.9C20,225.4,4.5,210.6,1.8,191c-1.3-9.5,0.6-18.4,5.5-26.6c1-1.8,2.2-3.4,3.3-5.2C11.1,158.8,10.9,158,11.8,158" fill="#34A853" />
           </svg>
         );
       case 'TikTok':
         return (
           <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-            <rect width="24" height="24" rx="5" fill="#000000"/>
-            <path d="M16.6 8.2c-.9-.6-1.5-1.5-1.7-2.6h-2.3v10.3c0 1.5-1.2 2.7-2.7 2.7s-2.7-1.2-2.7-2.7 1.2-2.7 2.7-2.7c.3 0 .6.1.9.2v-2.4c-.3 0-.6-.1-.9-.1-2.8 0-5.1 2.3-5.1 5.1s2.3 5.1 5.1 5.1 5.1-2.3 5.1-5.1v-6.3c1.1.8 2.5 1.3 4 1.3V8.5c-.8 0-1.7-.1-2.4-.3z" fill="#25F4EE" transform="translate(-0.8, -0.6)"/>
-            <path d="M16.6 8.2c-.9-.6-1.5-1.5-1.7-2.6h-2.3v10.3c0 1.5-1.2 2.7-2.7 2.7s-2.7-1.2-2.7-2.7 1.2-2.7 2.7-2.7c.3 0 .6.1.9.2v-2.4c-.3 0-.6-.1-.9-.1-2.8 0-5.1 2.3-5.1 5.1s2.3 5.1 5.1 5.1 5.1-2.3 5.1-5.1v-6.3c1.1.8 2.5 1.3 4 1.3V8.5c-.8 0-1.7-.1-2.4-.3z" fill="#FE2C55" transform="translate(0.8, 0.6)"/>
-            <path d="M16.6 8.2c-.9-.6-1.5-1.5-1.7-2.6h-2.3v10.3c0 1.5-1.2 2.7-2.7 2.7s-2.7-1.2-2.7-2.7 1.2-2.7 2.7-2.7c.3 0 .6.1.9.2v-2.4c-.3 0-.6-.1-.9-.1-2.8 0-5.1 2.3-5.1 5.1s2.3 5.1 5.1 5.1 5.1-2.3 5.1-5.1v-6.3c1.1.8 2.5 1.3 4 1.3V8.5c-.8 0-1.7-.1-2.4-.3z" fill="#FFFFFF"/>
+            <rect width="24" height="24" rx="5" fill="#000000" />
+            <path d="M16.6 8.2c-.9-.6-1.5-1.5-1.7-2.6h-2.3v10.3c0 1.5-1.2 2.7-2.7 2.7s-2.7-1.2-2.7-2.7 1.2-2.7 2.7-2.7c.3 0 .6.1.9.2v-2.4c-.3 0-.6-.1-.9-.1-2.8 0-5.1 2.3-5.1 5.1s2.3 5.1 5.1 5.1 5.1-2.3 5.1-5.1v-6.3c1.1.8 2.5 1.3 4 1.3V8.5c-.8 0-1.7-.1-2.4-.3z" fill="#25F4EE" transform="translate(-0.8, -0.6)" />
+            <path d="M16.6 8.2c-.9-.6-1.5-1.5-1.7-2.6h-2.3v10.3c0 1.5-1.2 2.7-2.7 2.7s-2.7-1.2-2.7-2.7 1.2-2.7 2.7-2.7c.3 0 .6.1.9.2v-2.4c-.3 0-.6-.1-.9-.1-2.8 0-5.1 2.3-5.1 5.1s2.3 5.1 5.1 5.1 5.1-2.3 5.1-5.1v-6.3c1.1.8 2.5 1.3 4 1.3V8.5c-.8 0-1.7-.1-2.4-.3z" fill="#FE2C55" transform="translate(0.8, 0.6)" />
+            <path d="M16.6 8.2c-.9-.6-1.5-1.5-1.7-2.6h-2.3v10.3c0 1.5-1.2 2.7-2.7 2.7s-2.7-1.2-2.7-2.7 1.2-2.7 2.7-2.7c.3 0 .6.1.9.2v-2.4c-.3 0-.6-.1-.9-.1-2.8 0-5.1 2.3-5.1 5.1s2.3 5.1 5.1 5.1 5.1-2.3 5.1-5.1v-6.3c1.1.8 2.5 1.3 4 1.3V8.5c-.8 0-1.7-.1-2.4-.3z" fill="#FFFFFF" />
           </svg>
         );
       case 'GoogleSheets':
         return (
           <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
-            <path d="M30 4H10C7.79 4 6 5.79 6 8v32c0 2.21 1.79 4 4 4h28c2.21 0 4-1.79 4-4V16L30 4z" fill="#0F9D58"/>
-            <path d="M30 4v12h12L30 4z" fill="#87CEAB"/>
-            <path d="M13 22h22v17H13z" fill="#FFFFFF" rx="1.5"/>
-            <path d="M13 27.5h22v2H13zm0 5.5h22v2H13zm7-11h2v17h-2zm8 0h2v17h-2z" fill="#0F9D58"/>
+            <path d="M30 4H10C7.79 4 6 5.79 6 8v32c0 2.21 1.79 4 4 4h28c2.21 0 4-1.79 4-4V16L30 4z" fill="#0F9D58" />
+            <path d="M30 4v12h12L30 4z" fill="#87CEAB" />
+            <path d="M13 22h22v17H13z" fill="#FFFFFF" rx="1.5" />
+            <path d="M13 27.5h22v2H13zm0 5.5h22v2H13zm7-11h2v17h-2zm8 0h2v17h-2z" fill="#0F9D58" />
           </svg>
         );
       case 'Zapier':
         return (
           <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-            <rect width="24" height="24" rx="5" fill="#FFF2EB"/>
-            <path d="M12 2.5c-.7 0-1.3.6-1.3 1.3V9L6 4.3c-.6-.6-1.5-.6-2.1 0s-.6 1.5 0 2.1l4.7 4.7H3.8c-.7 0-1.3.6-1.3 1.3s.6 1.3 1.3 1.3h4.8l-4.7 4.7c-.6.6-.6 1.5 0 2.1.3.3.7.4 1.1.4.4 0 .7-.1 1-.4l4.7-4.7v5.2c0 .7.6 1.3 1.3 1.3s1.3-.6 1.3-1.3v-5.2l4.7 4.7c.3.3.7.4 1 .4.4 0 .8-.1 1.1-.4.6-.6.6-1.5 0-2.1l-4.7-4.7h4.8c.7 0 1.3-.6 1.3-1.3s-.6-1.3-1.3-1.3h-4.8l4.7-4.7c.6-.6.6-1.5 0-2.1s-1.5-.6-2.1 0L13.3 9V3.8c0-.7-.6-1.3-1.3-1.3z" fill="#FF4A00"/>
+            <rect width="24" height="24" rx="5" fill="#FFF2EB" />
+            <path d="M12 2.5c-.7 0-1.3.6-1.3 1.3V9L6 4.3c-.6-.6-1.5-.6-2.1 0s-.6 1.5 0 2.1l4.7 4.7H3.8c-.7 0-1.3.6-1.3 1.3s.6 1.3 1.3 1.3h4.8l-4.7 4.7c-.6.6-.6 1.5 0 2.1.3.3.7.4 1.1.4.4 0 .7-.1 1-.4l4.7-4.7v5.2c0 .7.6 1.3 1.3 1.3s1.3-.6 1.3-1.3v-5.2l4.7 4.7c.3.3.7.4 1 .4.4 0 .8-.1 1.1-.4.6-.6.6-1.5 0-2.1l-4.7-4.7h4.8c.7 0 1.3-.6 1.3-1.3s-.6-1.3-1.3-1.3h-4.8l4.7-4.7c.6-.6.6-1.5 0-2.1s-1.5-.6-2.1 0L13.3 9V3.8c0-.7-.6-1.3-1.3-1.3z" fill="#FF4A00" />
           </svg>
         );
       case 'Bkash':
         return (
           <svg width={size} height={size} viewBox="245 10 226 215" fill="none">
-            <path d="M327.99 110.75l12.99 58.4 85.01-43.04z" fill="#D12053"/>
-            <path d="M352.16 23.48L328 110.76l98.01 15.35z" fill="#E2136E"/>
-            <path d="M248.31 10.7l101.38 12.11-23.97 86.76z" fill="#D12053"/>
-            <path d="M247.52 27.76h11.29l31.67 40.5z" fill="#9E1638"/>
-            <path d="M428.69 125.55l-29.46-40.77 47.66-8.53z" fill="#D12053"/>
-            <path d="M423.77 137.5l3.04-9.07-74.39 37.74z" fill="#E2136E"/>
-            <path d="M325.91 113.05l15.52 69.77-46.06 37.46z" fill="#9E1638"/>
-            <path d="M442.25 96.97l27.05-.46-19.55-19.89z" fill="#E2136E"/>
+            <path d="M327.99 110.75l12.99 58.4 85.01-43.04z" fill="#D12053" />
+            <path d="M352.16 23.48L328 110.76l98.01 15.35z" fill="#E2136E" />
+            <path d="M248.31 10.7l101.38 12.11-23.97 86.76z" fill="#D12053" />
+            <path d="M247.52 27.76h11.29l31.67 40.5z" fill="#9E1638" />
+            <path d="M428.69 125.55l-29.46-40.77 47.66-8.53z" fill="#D12053" />
+            <path d="M423.77 137.5l3.04-9.07-74.39 37.74z" fill="#E2136E" />
+            <path d="M325.91 113.05l15.52 69.77-46.06 37.46z" fill="#9E1638" />
+            <path d="M442.25 96.97l27.05-.46-19.55-19.89z" fill="#E2136E" />
           </svg>
         );
       case 'SSLCommerz':
         return (
           <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-            <rect width="24" height="24" rx="4" fill="#0052CC"/>
-            <path d="M3 7h18" stroke="#FFFFFF" strokeWidth="1.2" strokeOpacity="0.4"/>
-            <circle cx="7.5" cy="15.5" r="2.8" fill="#EB001B"/>
-            <circle cx="11.5" cy="15.5" r="2.8" fill="#F79E1B" fillOpacity="0.9"/>
-            <path d="M15.5 13.5h5v4h-5z" fill="#00875A" rx="0.5"/>
-            <path d="M17 15.5l1 1 2-2" stroke="#FFFFFF" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+            <rect width="24" height="24" rx="4" fill="#0052CC" />
+            <path d="M3 7h18" stroke="#FFFFFF" strokeWidth="1.2" strokeOpacity="0.4" />
+            <circle cx="7.5" cy="15.5" r="2.8" fill="#EB001B" />
+            <circle cx="11.5" cy="15.5" r="2.8" fill="#F79E1B" fillOpacity="0.9" />
+            <path d="M15.5 13.5h5v4h-5z" fill="#00875A" rx="0.5" />
+            <path d="M17 15.5l1 1 2-2" stroke="#FFFFFF" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         );
       case 'BankCard':
         return (
           <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-            <rect width="24" height="24" rx="4" fill="#0F172A"/>
-            <rect x="2.5" y="3.5" width="19" height="17" rx="2" fill="#1E293B" stroke="#334155" strokeWidth="0.8"/>
-            <rect x="4.5" y="6" width="4.5" height="3.5" rx="0.8" fill="#F59E0B" stroke="#D97706" strokeWidth="0.5"/>
-            <circle cx="13.5" cy="15" r="2.8" fill="#EB001B"/>
-            <circle cx="16.8" cy="15" r="2.8" fill="#F79E1B" fillOpacity="0.9"/>
+            <rect width="24" height="24" rx="4" fill="#0F172A" />
+            <rect x="2.5" y="3.5" width="19" height="17" rx="2" fill="#1E293B" stroke="#334155" strokeWidth="0.8" />
+            <rect x="4.5" y="6" width="4.5" height="3.5" rx="0.8" fill="#F59E0B" stroke="#D97706" strokeWidth="0.5" />
+            <circle cx="13.5" cy="15" r="2.8" fill="#EB001B" />
+            <circle cx="16.8" cy="15" r="2.8" fill="#F79E1B" fillOpacity="0.9" />
           </svg>
         );
       case 'Stripe':
         return (
           <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-            <rect width="24" height="24" rx="5" fill="#635BFF"/>
-            <path d="M13.9 9.3c0-.8-.7-1.3-1.8-1.3-1.6 0-3.3.6-4.4 1.2L7 6.8c1.3-.7 3.2-1.3 5.3-1.3 3.6 0 5.8 1.8 5.8 4.7 0 4.1-5.7 3.4-5.7 5.2 0 1 .9 1.4 2.2 1.4 1.8 0 3.7-.8 4.8-1.5l.7 2.4c-1.4.8-3.4 1.4-5.7 1.4-3.8 0-6.1-1.8-6.1-4.7 0-4.4 5.7-3.6 5.7-5.1z" fill="#FFFFFF"/>
+            <rect width="24" height="24" rx="5" fill="#635BFF" />
+            <path d="M13.9 9.3c0-.8-.7-1.3-1.8-1.3-1.6 0-3.3.6-4.4 1.2L7 6.8c1.3-.7 3.2-1.3 5.3-1.3 3.6 0 5.8 1.8 5.8 4.7 0 4.1-5.7 3.4-5.7 5.2 0 1 .9 1.4 2.2 1.4 1.8 0 3.7-.8 4.8-1.5l.7 2.4c-1.4.8-3.4 1.4-5.7 1.4-3.8 0-6.1-1.8-6.1-4.7 0-4.4 5.7-3.6 5.7-5.1z" fill="#FFFFFF" />
           </svg>
         );
       case 'DeveloperApi':
         return (
           <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-            <rect width="24" height="24" rx="5" fill="#0F172A"/>
-            <path d="M6.5 8.5L10 12l-3.5 3.5" stroke="#A855F7" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M12.5 15.5h5" stroke="#38BDF8" strokeWidth="2.2" strokeLinecap="round"/>
+            <rect width="24" height="24" rx="5" fill="#0F172A" />
+            <path d="M6.5 8.5L10 12l-3.5 3.5" stroke="#A855F7" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M12.5 15.5h5" stroke="#38BDF8" strokeWidth="2.2" strokeLinecap="round" />
           </svg>
         );
       default:
@@ -8939,11 +8881,10 @@ function IntegrationsView({ clients = [], transactions = [], workspaceSettings =
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveCategory(tab.id)}
-                className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
-                  active
+                className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${active
                     ? 'bg-white text-slate-900 shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
-                }`}
+                  }`}
               >
                 <span>{tab.label}</span>
                 <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${active ? 'bg-sky-100 text-sky-700 font-extrabold' : 'bg-slate-300/80 text-slate-700 font-bold'}`}>
@@ -8978,9 +8919,8 @@ function IntegrationsView({ clients = [], transactions = [], workspaceSettings =
           return (
             <div
               key={item.id}
-              className={`bg-white border rounded-xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:shadow-md transition-all flex flex-col justify-between group ${
-                isConnected ? 'border-slate-200/90' : 'border-slate-200/70 bg-white'
-              }`}
+              className={`bg-white border rounded-xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:shadow-md transition-all flex flex-col justify-between group ${isConnected ? 'border-slate-200/90' : 'border-slate-200/70 bg-white'
+                }`}
             >
               <div>
                 {/* Header Row */}
@@ -8996,11 +8936,10 @@ function IntegrationsView({ clients = [], transactions = [], workspaceSettings =
                   </div>
 
                   <span
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider shrink-0 ${
-                      isConnected
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider shrink-0 ${isConnected
                         ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                         : 'bg-slate-100 text-slate-500 border-slate-200'
-                    }`}
+                      }`}
                   >
                     <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
                     {isConnected ? 'Live Sync' : 'Ready'}
@@ -9913,11 +9852,10 @@ function TeamView({ teamMembers = [], onAdd, onUpdate, onRemove, clients = [], w
           <button
             type="button"
             onClick={() => setShowPermissionsGuide(prev => !prev)}
-            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full border text-xs font-bold transition-all cursor-pointer select-none whitespace-nowrap shrink-0 ${
-              showPermissionsGuide
+            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full border text-xs font-bold transition-all cursor-pointer select-none whitespace-nowrap shrink-0 ${showPermissionsGuide
                 ? 'bg-[#ebf0f7] dark:bg-[#182235] border-white dark:border-sky-500/30 text-sky-800 dark:text-sky-400 shadow-sm'
                 : 'bg-[#ebf0f7] dark:bg-[#111722] border-white dark:border-white/10 text-slate-700 dark:text-slate-200 hover:text-sky-700 dark:hover:text-sky-400 shadow-sm'
-            }`}
+              }`}
           >
             <ShieldCheck size={14} className="text-sky-600 dark:text-sky-400 shrink-0" />
             <span>{showPermissionsGuide ? 'Hide Roles Guide' : 'View Roles Guide'}</span>
@@ -10108,17 +10046,15 @@ function TeamView({ teamMembers = [], onAdd, onUpdate, onRemove, clients = [], w
               key={tab.id}
               type="button"
               onClick={() => setActiveSubTab(tab.id)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
-                active
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${active
                   ? 'bg-white text-slate-900 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               <IconComponent size={14} className={active ? 'text-sky-600' : 'text-slate-400'} />
               <span>{tab.label}</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                active ? 'bg-sky-100 text-sky-700 font-extrabold' : 'bg-slate-300/80 text-slate-700'
-              }`}>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${active ? 'bg-sky-100 text-sky-700 font-extrabold' : 'bg-slate-300/80 text-slate-700'
+                }`}>
                 {tab.count}
               </span>
             </button>
@@ -10158,16 +10094,14 @@ function TeamView({ teamMembers = [], onAdd, onUpdate, onRemove, clients = [], w
                     key={tab.id}
                     type="button"
                     onClick={() => setRoleFilter(tab.id)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
-                      active
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${active
                         ? 'bg-white text-slate-900 shadow-xs'
                         : 'text-slate-600 hover:text-slate-900'
-                    }`}
+                      }`}
                   >
                     <span>{tab.label}</span>
-                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                      active ? 'bg-sky-100 text-sky-700 font-extrabold' : 'bg-slate-300/80 text-slate-700'
-                    }`}>
+                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${active ? 'bg-sky-100 text-sky-700 font-extrabold' : 'bg-slate-300/80 text-slate-700'
+                      }`}>
                       {tab.count}
                     </span>
                   </button>
@@ -10202,11 +10136,10 @@ function TeamView({ teamMembers = [], onAdd, onUpdate, onRemove, clients = [], w
                 return (
                   <div
                     key={member.id}
-                    className={`bg-white border rounded-2xl p-4 sm:p-5 shadow-sm transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 ${
-                      isSuspended
+                    className={`bg-white border rounded-2xl p-4 sm:p-5 shadow-sm transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 ${isSuspended
                         ? 'border-slate-200 bg-slate-50/60 opacity-75'
                         : 'border-slate-200/90 hover:border-sky-300 hover:shadow-md'
-                    }`}
+                      }`}
                   >
                     {/* Member Info */}
                     <div className="flex items-center gap-3.5 min-w-0">
@@ -10215,9 +10148,8 @@ function TeamView({ teamMembers = [], onAdd, onUpdate, onRemove, clients = [], w
                           {(member.name || member.email || 'U').charAt(0).toUpperCase()}
                         </div>
                         <span
-                          className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white ${
-                            isSuspended ? 'bg-slate-400' : 'bg-emerald-500'
-                          }`}
+                          className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white ${isSuspended ? 'bg-slate-400' : 'bg-emerald-500'
+                            }`}
                         />
                       </div>
 
@@ -10301,11 +10233,10 @@ function TeamView({ teamMembers = [], onAdd, onUpdate, onRemove, clients = [], w
                           type="button"
                           onClick={() => toggleMemberStatus(member)}
                           title={isSuspended ? 'Activate Member' : 'Suspend Member'}
-                          className={`p-2 rounded-xl border transition-colors ${
-                            isSuspended
+                          className={`p-2 rounded-xl border transition-colors ${isSuspended
                               ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
                               : 'border-slate-200 bg-white text-slate-500 hover:text-orange-600 hover:bg-orange-50'
-                          }`}
+                            }`}
                         >
                           {isSuspended ? <UserCheck size={15} /> : <UserX size={15} />}
                         </button>
@@ -10530,11 +10461,10 @@ function TeamView({ teamMembers = [], onAdd, onUpdate, onRemove, clients = [], w
                     onChange={handleNameChange}
                     onBlur={handleNameBlur}
                     placeholder="Enter team member name"
-                    className={`w-full mt-1 px-3.5 py-2.5 border rounded-xl text-xs outline-none transition-colors ${
-                      formErrors.name
+                    className={`w-full mt-1 px-3.5 py-2.5 border rounded-xl text-xs outline-none transition-colors ${formErrors.name
                         ? 'border-rose-400 bg-rose-50/40 focus:ring-2 focus:ring-rose-400 text-slate-900'
                         : 'border-slate-300 focus:ring-2 focus:ring-sky-500 bg-white'
-                    }`}
+                      }`}
                   />
                   {formErrors.name && (
                     <p className="mt-1 text-[10.5px] font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in">
@@ -10550,11 +10480,10 @@ function TeamView({ teamMembers = [], onAdd, onUpdate, onRemove, clients = [], w
                     onChange={handleEmailChange}
                     onBlur={handleEmailBlur}
                     placeholder="name@agency.com"
-                    className={`w-full mt-1 px-3.5 py-2.5 border rounded-xl text-xs outline-none transition-colors ${
-                      formErrors.email
+                    className={`w-full mt-1 px-3.5 py-2.5 border rounded-xl text-xs outline-none transition-colors ${formErrors.email
                         ? 'border-rose-400 bg-rose-50/40 focus:ring-2 focus:ring-rose-400 text-slate-900'
                         : 'border-slate-300 focus:ring-2 focus:ring-sky-500 bg-white'
-                    }`}
+                      }`}
                   />
                   {formErrors.email && (
                     <p className="mt-1 text-[10.5px] font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in">
@@ -10596,22 +10525,20 @@ function TeamView({ teamMembers = [], onAdd, onUpdate, onRemove, clients = [], w
                     <button
                       type="button"
                       onClick={() => setFormData(p => ({ ...p, clientScopeType: 'all', selectedClients: [] }))}
-                      className={`flex-1 py-1.5 px-2 rounded-lg text-[11px] font-bold transition-all text-center ${
-                        formData.clientScopeType === 'all'
+                      className={`flex-1 py-1.5 px-2 rounded-lg text-[11px] font-bold transition-all text-center ${formData.clientScopeType === 'all'
                           ? 'bg-white text-slate-900 shadow-sm'
                           : 'text-slate-500 hover:text-slate-800'
-                      }`}
+                        }`}
                     >
                       All Clients ({clients.length})
                     </button>
                     <button
                       type="button"
                       onClick={() => setFormData(p => ({ ...p, clientScopeType: 'custom' }))}
-                      className={`flex-1 py-1.5 px-2 rounded-lg text-[11px] font-bold transition-all text-center ${
-                        formData.clientScopeType === 'custom'
+                      className={`flex-1 py-1.5 px-2 rounded-lg text-[11px] font-bold transition-all text-center ${formData.clientScopeType === 'custom'
                           ? 'bg-white text-slate-900 shadow-sm'
                           : 'text-slate-500 hover:text-slate-800'
-                      }`}
+                        }`}
                     >
                       Specific {formData.selectedClients?.length > 0 && `(${formData.selectedClients.length})`}
                     </button>
@@ -10630,11 +10557,10 @@ function TeamView({ teamMembers = [], onAdd, onUpdate, onRemove, clients = [], w
                                 key={c.id}
                                 type="button"
                                 onClick={() => toggleClientSelection(c.name)}
-                                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1.5 border ${
-                                  isSelected
+                                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1.5 border ${isSelected
                                     ? 'bg-sky-600 border-sky-600 text-white shadow-sm'
                                     : 'bg-white border-slate-200 text-slate-700 hover:border-sky-300'
-                                }`}
+                                  }`}
                               >
                                 <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-slate-300'}`} />
                                 {c.name}
@@ -11595,11 +11521,10 @@ function UserGuideView({ onNavigate }) {
               key={tab.id}
               type="button"
               onClick={() => { setActiveTab(tab.id); setSearchQuery(''); }}
-              className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
-                active
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${active
                   ? 'bg-white text-slate-900 shadow-xs font-black'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               <span className={active ? 'text-sky-600' : 'text-slate-400'}>{tab.icon}</span>
               <span>{tab.label}</span>
@@ -12043,14 +11968,14 @@ function BkashOfficialLogo({ className = "w-8 h-8" }) {
   return (
     <svg className={className} viewBox="245 10 226 215" fill="none" xmlns="http://www.w3.org/2000/svg">
       {/* 100% Genuine Official bKash Origami Bird Mark (Official Trademark Geometry) */}
-      <path d="M327.99 110.75l12.99 58.4 85.01-43.04z" fill="#D12053"/>
-      <path d="M352.16 23.48L328 110.76l98.01 15.35z" fill="#E2136E"/>
-      <path d="M248.31 10.7l101.38 12.11-23.97 86.76z" fill="#D12053"/>
-      <path d="M247.52 27.76h11.29l31.67 40.5z" fill="#9E1638"/>
-      <path d="M428.69 125.55l-29.46-40.77 47.66-8.53z" fill="#D12053"/>
-      <path d="M423.77 137.5l3.04-9.07-74.39 37.74z" fill="#E2136E"/>
-      <path d="M325.91 113.05l15.52 69.77-46.06 37.46z" fill="#9E1638"/>
-      <path d="M442.25 96.97l27.05-.46-19.55-19.89z" fill="#E2136E"/>
+      <path d="M327.99 110.75l12.99 58.4 85.01-43.04z" fill="#D12053" />
+      <path d="M352.16 23.48L328 110.76l98.01 15.35z" fill="#E2136E" />
+      <path d="M248.31 10.7l101.38 12.11-23.97 86.76z" fill="#D12053" />
+      <path d="M247.52 27.76h11.29l31.67 40.5z" fill="#9E1638" />
+      <path d="M428.69 125.55l-29.46-40.77 47.66-8.53z" fill="#D12053" />
+      <path d="M423.77 137.5l3.04-9.07-74.39 37.74z" fill="#E2136E" />
+      <path d="M325.91 113.05l15.52 69.77-46.06 37.46z" fill="#9E1638" />
+      <path d="M442.25 96.97l27.05-.46-19.55-19.89z" fill="#E2136E" />
     </svg>
   );
 }
@@ -12059,11 +11984,11 @@ function NagadOfficialLogo({ className = "w-8 h-8" }) {
   return (
     <svg className={className} viewBox="0 0 126 131" fill="none" xmlns="http://www.w3.org/2000/svg">
       {/* 100% Genuine Official Nagad Postal Division Swirling Flame Mark (Official Trademark Geometry) */}
-      <path d="m22.469 70.056c0 1.817 0 3.373-.26 4.93a58.206 58.206 0 0 1 -5.189 20.239c-1.038 2.595-2.335 4.93-3.892 7.265-10.898 17.125-30.099 28.542-51.894 28.542-9.341 0-18.163-2.076-25.948-5.708-20.756-9.6-35.288-30.877-35.288-55.268 0-24.13 14.012-44.888 33.991-54.748-1.557 2.075-3.114 4.151-4.411 6.486 0 .26-.26.26-.26.52-.778.778-1.556 1.297-2.335 2.075-1.038.779-1.816 1.816-2.854 2.595l-.519.519-.519.519c-.26.26-.519.778-1.038 1.038-.519.778-1.297 1.556-1.816 2.335a45.542 45.542 0 0 0 -6.227 10.898c-.26.26-.26.778-.52 1.038-.259.519-.259 1.037-.518 1.297 0 .26-.26.519-.26.778-.26.779-.519 1.298-.778 2.076-.26.52-.26 1.038-.519 1.297 0 .26-.26.52-.26.779 0 .519-.259 1.038-.259 1.557l-.778 4.67c0 .52 0 .779-.26 1.298v6.227c0 16.606 7.525 31.656 19.72 41.256 9.341 7.525 21.017 12.195 33.731 12.195 11.677 0 22.315-3.632 31.137-10.12 6.487-4.67 11.676-10.638 15.568-17.643.52-1.038 1.038-1.817 1.557-2.855 3.114-6.486 4.93-13.492 4.93-21.017v-1.816c0-1.816 0-3.373-.26-5.19l.26.26c.779.778 1.557 1.297 2.335 2.076.779-1.298 1.557-2.336 2.336-3.633.519 2.335.778 4.67 1.038 7.265.259 2.336.259 4.152.259 5.968z" fill="#ED1C24"/>
-      <path d="m68.499 21.016-11.417-21.017c-18.941 8.561-31.915 27.504-31.915 49.559 0 11.157 3.373 21.536 9.082 30.099-.52-2.855-.52-5.709-.52-8.822.261-22.575 14.531-41.775 34.771-49.819z" fill="#F7941D"/>
-      <path d="m77.58 31.395c4.67-1.297 9.86-1.816 14.79-1.816 3.114 0 6.487.259 9.341.778l-.26-9.341-.518-18.682c-2.076-.26-4.411-.519-6.746-.519-10.38 0-19.98 3.373-27.764 8.822l6.227 11.417c-11.157 3.892-20.238 11.676-25.947 21.796-2.854 4.93-4.93 10.638-5.708 16.606 1.557-3.114 3.373-5.968 5.449-8.563 7.524-9.86 18.422-17.384 31.136-20.498z" fill="#ED1C24"/>
-      <path d="m104.825 20.757.519 13.233c-4.411-1.298-8.822-2.076-13.752-2.076-9.082 0-17.644 2.595-25.169 7.006-9.34 5.708-16.606 14.79-20.239 25.428 3.633-4.93 8.044-9.341 13.233-12.714 7.525-4.93 16.607-7.784 26.207-7.784 7.265 0 14.011 1.556 20.239 4.41a41.05 41.05 0 0 1 12.454 8.563l7.266-10.898 9.34-14.27c-8.302-6.747-18.681-10.898-30.098-10.898z" fill="#F7941D"/>
-      <path d="m116.501 63.829v1.816c0 10.898-4.41 19.98-4.93 21.017s-1.038 1.817-1.557 2.855c-3.892 7.005-9.081 12.973-15.568 17.644-8.822 6.227-19.46 10.12-31.137 10.12-12.714 0-24.65-4.412-33.731-12.196-11.936-9.86-19.72-24.65-19.72-41.256v-6.227c0-.52 0-.779.26-1.298l.778-4.67c0-.52.26-1.038.26-1.557 0-.26.259-.52.259-.779.26-.519.26-1.037.519-1.297.26-.778.519-1.557.778-2.076 0-.26.26-.519.26-.778.26-.52.26-1.038.519-1.297s.26-.779.519-1.038c1.557-3.892 3.892-7.525 6.227-10.898.519-.779 1.297-1.557 1.816-2.335.26-.26.52-.779 1.038-1.038.26-.26.26-.52.52-.52.259-.259.259-.518.518-.518.779-1.038 1.816-1.817 2.854-2.595.779-.778 1.557-1.297 2.336-2.076 0 .26-.26.26-.26.52s-.26.518-.26.518c-3.113 6.228-5.189 13.752-5.967 21.536-.26 2.076-.26 4.152-.26 6.487 0 28.023 16.347 50.597 36.586 50.597h2.076c2.854 0 5.708-.519 8.562-1.038 13.752-3.632 23.872-16.346 23.872-31.136v-.779c-.26-8.822-3.892-16.865-9.86-22.314 4.151 0 8.303.778 12.195 1.816 7.525 1.816 14.27 5.449 20.239 10.12l.26.259c-.26 1.038 0 2.854 0 4.41z" fill="#F7941D"/>
+      <path d="m22.469 70.056c0 1.817 0 3.373-.26 4.93a58.206 58.206 0 0 1 -5.189 20.239c-1.038 2.595-2.335 4.93-3.892 7.265-10.898 17.125-30.099 28.542-51.894 28.542-9.341 0-18.163-2.076-25.948-5.708-20.756-9.6-35.288-30.877-35.288-55.268 0-24.13 14.012-44.888 33.991-54.748-1.557 2.075-3.114 4.151-4.411 6.486 0 .26-.26.26-.26.52-.778.778-1.556 1.297-2.335 2.075-1.038.779-1.816 1.816-2.854 2.595l-.519.519-.519.519c-.26.26-.519.778-1.038 1.038-.519.778-1.297 1.556-1.816 2.335a45.542 45.542 0 0 0 -6.227 10.898c-.26.26-.26.778-.52 1.038-.259.519-.259 1.037-.518 1.297 0 .26-.26.519-.26.778-.26.779-.519 1.298-.778 2.076-.26.52-.26 1.038-.519 1.297 0 .26-.26.52-.26.779 0 .519-.259 1.038-.259 1.557l-.778 4.67c0 .52 0 .779-.26 1.298v6.227c0 16.606 7.525 31.656 19.72 41.256 9.341 7.525 21.017 12.195 33.731 12.195 11.677 0 22.315-3.632 31.137-10.12 6.487-4.67 11.676-10.638 15.568-17.643.52-1.038 1.038-1.817 1.557-2.855 3.114-6.486 4.93-13.492 4.93-21.017v-1.816c0-1.816 0-3.373-.26-5.19l.26.26c.779.778 1.557 1.297 2.335 2.076.779-1.298 1.557-2.336 2.336-3.633.519 2.335.778 4.67 1.038 7.265.259 2.336.259 4.152.259 5.968z" fill="#ED1C24" />
+      <path d="m68.499 21.016-11.417-21.017c-18.941 8.561-31.915 27.504-31.915 49.559 0 11.157 3.373 21.536 9.082 30.099-.52-2.855-.52-5.709-.52-8.822.261-22.575 14.531-41.775 34.771-49.819z" fill="#F7941D" />
+      <path d="m77.58 31.395c4.67-1.297 9.86-1.816 14.79-1.816 3.114 0 6.487.259 9.341.778l-.26-9.341-.518-18.682c-2.076-.26-4.411-.519-6.746-.519-10.38 0-19.98 3.373-27.764 8.822l6.227 11.417c-11.157 3.892-20.238 11.676-25.947 21.796-2.854 4.93-4.93 10.638-5.708 16.606 1.557-3.114 3.373-5.968 5.449-8.563 7.524-9.86 18.422-17.384 31.136-20.498z" fill="#ED1C24" />
+      <path d="m104.825 20.757.519 13.233c-4.411-1.298-8.822-2.076-13.752-2.076-9.082 0-17.644 2.595-25.169 7.006-9.34 5.708-16.606 14.79-20.239 25.428 3.633-4.93 8.044-9.341 13.233-12.714 7.525-4.93 16.607-7.784 26.207-7.784 7.265 0 14.011 1.556 20.239 4.41a41.05 41.05 0 0 1 12.454 8.563l7.266-10.898 9.34-14.27c-8.302-6.747-18.681-10.898-30.098-10.898z" fill="#F7941D" />
+      <path d="m116.501 63.829v1.816c0 10.898-4.41 19.98-4.93 21.017s-1.038 1.817-1.557 2.855c-3.892 7.005-9.081 12.973-15.568 17.644-8.822 6.227-19.46 10.12-31.137 10.12-12.714 0-24.65-4.412-33.731-12.196-11.936-9.86-19.72-24.65-19.72-41.256v-6.227c0-.52 0-.779.26-1.298l.778-4.67c0-.52.26-1.038.26-1.557 0-.26.259-.52.259-.779.26-.519.26-1.037.519-1.297.26-.778.519-1.557.778-2.076 0-.26.26-.519.26-.778.26-.52.26-1.038.519-1.297s.26-.779.519-1.038c1.557-3.892 3.892-7.525 6.227-10.898.519-.779 1.297-1.557 1.816-2.335.26-.26.52-.779 1.038-1.038.26-.26.26-.52.52-.52.259-.259.259-.518.518-.518.779-1.038 1.816-1.817 2.854-2.595.779-.778 1.557-1.297 2.336-2.076 0 .26-.26.26-.26.52s-.26.518-.26.518c-3.113 6.228-5.189 13.752-5.967 21.536-.26 2.076-.26 4.152-.26 6.487 0 28.023 16.347 50.597 36.586 50.597h2.076c2.854 0 5.708-.519 8.562-1.038 13.752-3.632 23.872-16.346 23.872-31.136v-.779c-.26-8.822-3.892-16.865-9.86-22.314 4.151 0 8.303.778 12.195 1.816 7.525 1.816 14.27 5.449 20.239 10.12l.26.259c-.26 1.038 0 2.854 0 4.41z" fill="#F7941D" />
     </svg>
   );
 }
@@ -12630,9 +12555,8 @@ function BillingPlansView({ subscription, onUpdate, businessName, onNavigate }) 
           <div className="flex items-center gap-2 shrink-0">
             <div className="text-right hidden sm:block">
               <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Current Status</div>
-              <div className={`text-sm font-extrabold flex items-center justify-end gap-1.5 mt-0.5 ${
-                isProActive ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'
-              }`}>
+              <div className={`text-sm font-extrabold flex items-center justify-end gap-1.5 mt-0.5 ${isProActive ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'
+                }`}>
                 {isProActive ? activePlanName : '3-Day Free Trial Active'}
               </div>
             </div>
@@ -12689,13 +12613,12 @@ function BillingPlansView({ subscription, onUpdate, businessName, onNavigate }) 
               />
               <div>
                 <div className="flex items-center justify-between gap-2 mb-3.5">
-                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
-                    plan.id === 'starter_monthly'
+                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${plan.id === 'starter_monthly'
                       ? 'bg-sky-100 text-sky-800 border border-sky-200/80'
                       : plan.id === 'pro_annual'
                         ? 'bg-purple-100 text-purple-800 border border-purple-200/80'
                         : 'bg-emerald-100 text-emerald-800 border border-emerald-200/80'
-                  }`}>
+                    }`}>
                     {plan.badge}
                   </span>
                   {plan.popular && (
@@ -12742,13 +12665,12 @@ function BillingPlansView({ subscription, onUpdate, businessName, onNavigate }) 
                     e.stopPropagation();
                     handleOpenPlanCheckout(plan);
                   }}
-                  className={`adl-plan-btn ${
-                    plan.id === 'starter_monthly'
+                  className={`adl-plan-btn ${plan.id === 'starter_monthly'
                       ? 'adl-plan-btn-starter'
                       : plan.id === 'pro_annual'
                         ? 'adl-plan-btn-pro'
                         : 'adl-plan-btn-lifetime'
-                  }`}
+                    }`}
                 >
                   <CreditCard size={15} className="stroke-[2.5]" />
                   <span>{plan.btnText}</span>
@@ -12830,11 +12752,10 @@ function BillingPlansView({ subscription, onUpdate, businessName, onNavigate }) 
 
               {/* Step 2: Payment */}
               <div className="flex items-center gap-2.5">
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center font-black text-xs shrink-0 transition-all ${
-                  checkoutStep === 'done'
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center font-black text-xs shrink-0 transition-all ${checkoutStep === 'done'
                     ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
                     : 'bg-blue-600 text-white shadow-md shadow-blue-600/40 ring-2 ring-blue-400/30'
-                }`}>
+                  }`}>
                   {checkoutStep === 'done' ? <Check size={14} className="stroke-[3]" /> : '2'}
                 </div>
                 <div>
@@ -12846,14 +12767,12 @@ function BillingPlansView({ subscription, onUpdate, businessName, onNavigate }) 
               </div>
 
               {/* Connector 2 */}
-              <div className={`flex-1 h-[2px] mx-3 sm:mx-4 rounded-full transition-all ${
-                checkoutStep === 'done' ? 'bg-gradient-to-r from-blue-600 to-emerald-500' : 'bg-[#1e293b]'
-              }`} />
+              <div className={`flex-1 h-[2px] mx-3 sm:mx-4 rounded-full transition-all ${checkoutStep === 'done' ? 'bg-gradient-to-r from-blue-600 to-emerald-500' : 'bg-[#1e293b]'
+                }`} />
 
               {/* Step 3: Done */}
               <div className="flex items-center gap-2.5">
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0 transition-all ${
-                  checkoutStep === 'done'
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0 transition-all ${checkoutStep === 'done'
                     ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/40 ring-2 ring-emerald-400/30'
                     : 'bg-[#151c2e] text-slate-500 border border-[#1e293b]'
                   }`}>
@@ -12899,11 +12818,10 @@ function BillingPlansView({ subscription, onUpdate, businessName, onNavigate }) 
                   <button
                     type="button"
                     onClick={() => { setPaymentMethod('bkash'); setErrorMessage(''); }}
-                    className={`p-3.5 rounded-2xl text-left flex flex-col justify-between gap-2.5 transition-all cursor-pointer select-none ${
-                      paymentMethod === 'bkash'
+                    className={`p-3.5 rounded-2xl text-left flex flex-col justify-between gap-2.5 transition-all cursor-pointer select-none ${paymentMethod === 'bkash'
                         ? 'bg-pink-950/25 border-2 border-[#e2136e] shadow-lg shadow-pink-900/20 ring-1 ring-pink-500/30'
                         : 'bg-[#0d1322] border border-[#1e293b] hover:border-slate-600 hover:bg-[#121a2d]'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center justify-between">
                       <BkashOfficialLogo className="w-8 h-8 shrink-0" />
@@ -12918,11 +12836,10 @@ function BillingPlansView({ subscription, onUpdate, businessName, onNavigate }) 
                   <button
                     type="button"
                     onClick={() => { setPaymentMethod('nagad'); setErrorMessage(''); }}
-                    className={`p-3.5 rounded-2xl text-left flex flex-col justify-between gap-2.5 transition-all cursor-pointer select-none ${
-                      paymentMethod === 'nagad'
+                    className={`p-3.5 rounded-2xl text-left flex flex-col justify-between gap-2.5 transition-all cursor-pointer select-none ${paymentMethod === 'nagad'
                         ? 'bg-amber-950/25 border-2 border-[#f7941d] shadow-lg shadow-amber-900/20 ring-1 ring-amber-500/30'
                         : 'bg-[#0d1322] border border-[#1e293b] hover:border-slate-600 hover:bg-[#121a2d]'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center justify-between">
                       <NagadOfficialLogo className="w-8 h-8 shrink-0" />
@@ -12937,11 +12854,10 @@ function BillingPlansView({ subscription, onUpdate, businessName, onNavigate }) 
                   <button
                     type="button"
                     onClick={() => { setPaymentMethod('card'); setErrorMessage(''); }}
-                    className={`p-3.5 rounded-2xl text-left flex flex-col justify-between gap-2.5 transition-all cursor-pointer select-none ${
-                      paymentMethod === 'card'
+                    className={`p-3.5 rounded-2xl text-left flex flex-col justify-between gap-2.5 transition-all cursor-pointer select-none ${paymentMethod === 'card'
                         ? 'bg-blue-950/25 border-2 border-blue-500 shadow-lg shadow-blue-900/20 ring-1 ring-blue-500/30'
                         : 'bg-[#0d1322] border border-[#1e293b] hover:border-slate-600 hover:bg-[#121a2d]'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center justify-between">
                       <CardOfficialLogo className="w-8 h-8 shrink-0" />
@@ -12956,11 +12872,10 @@ function BillingPlansView({ subscription, onUpdate, businessName, onNavigate }) 
                   <button
                     type="button"
                     onClick={() => { setPaymentMethod('bank'); setErrorMessage(''); }}
-                    className={`p-3.5 rounded-2xl text-left flex flex-col justify-between gap-2.5 transition-all cursor-pointer select-none ${
-                      paymentMethod === 'bank'
+                    className={`p-3.5 rounded-2xl text-left flex flex-col justify-between gap-2.5 transition-all cursor-pointer select-none ${paymentMethod === 'bank'
                         ? 'bg-teal-950/25 border-2 border-teal-500 shadow-lg shadow-teal-900/20 ring-1 ring-teal-500/30'
                         : 'bg-[#0d1322] border border-[#1e293b] hover:border-slate-600 hover:bg-[#121a2d]'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center justify-between">
                       <BankOfficialLogo className="w-8 h-8 shrink-0" />
@@ -12972,7 +12887,7 @@ function BillingPlansView({ subscription, onUpdate, businessName, onNavigate }) 
                   </button>
                 </div>
 
-                
+
                 {/* ORDER & PRICE BREAKDOWN SUMMARY CARD */}
                 <div className="p-4 sm:p-5 rounded-2xl bg-[#0c1220] border border-[#1e293b] space-y-4 shadow-lg">
                   {/* Top Header */}
@@ -13138,7 +13053,7 @@ function BillingPlansView({ subscription, onUpdate, businessName, onNavigate }) 
 
                 {/* METHOD DETAILS CONTAINER */}
                 <div className="p-5 sm:p-6 rounded-2xl bg-[#0c1220] border border-[#1e293b] space-y-4 shadow-md">
-                  
+
                   {/* A. BKASH & NAGAD CHANNELS */}
                   {(paymentMethod === 'bkash' || paymentMethod === 'nagad') && (
                     <>
@@ -13201,11 +13116,10 @@ function BillingPlansView({ subscription, onUpdate, businessName, onNavigate }) 
                       </div>
 
                       {/* Merchant Number Box */}
-                      <div className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                        paymentMethod === 'bkash'
+                      <div className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${paymentMethod === 'bkash'
                           ? 'bg-[#181120] border-[#e2136e]/40'
                           : 'bg-[#1d1410] border-[#f7941d]/40'
-                      }`}>
+                        }`}>
                         <div>
                           <div className="text-[11px] uppercase tracking-wider font-bold text-slate-400">
                             {paymentMethod === 'bkash' ? 'bKash Merchant Number' : 'Nagad Merchant Number'}
@@ -13218,13 +13132,12 @@ function BillingPlansView({ subscription, onUpdate, businessName, onNavigate }) 
                         <button
                           type="button"
                           onClick={() => handleCopy('+8801874887309', 'number')}
-                          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm ${
-                            copiedNumber
+                          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm ${copiedNumber
                               ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
                               : paymentMethod === 'bkash'
                                 ? 'bg-[#e2136e]/20 hover:bg-[#e2136e]/30 text-pink-200 border border-[#e2136e]/40'
                                 : 'bg-[#f7941d]/20 hover:bg-[#f7941d]/30 text-amber-200 border border-[#f7941d]/40'
-                          }`}
+                            }`}
                         >
                           {copiedNumber ? (
                             <>
@@ -13289,11 +13202,10 @@ function BillingPlansView({ subscription, onUpdate, businessName, onNavigate }) 
                               }
                             }}
                             placeholder=""
-                            className={`w-full px-3.5 py-2.5 rounded-xl border bg-[#090d16] text-xs font-mono font-bold text-white outline-none transition-colors ${
-                              phoneError
+                            className={`w-full px-3.5 py-2.5 rounded-xl border bg-[#090d16] text-xs font-mono font-bold text-white outline-none transition-colors ${phoneError
                                 ? 'border-rose-500 focus:border-rose-500 text-rose-200'
                                 : 'border-[#1e293b] focus:border-blue-500'
-                            }`}
+                              }`}
                           />
                           {phoneError && (
                             <div className="text-[11px] text-rose-400 font-semibold mt-1 flex items-center gap-1.5 animate-in fade-in">
@@ -13492,7 +13404,7 @@ function BillingPlansView({ subscription, onUpdate, businessName, onNavigate }) 
                           />
                         </div>
                       </div>
-                                          {/* Amount to Pay Box */}
+                      {/* Amount to Pay Box */}
                       <div className="p-4 rounded-xl bg-[#0f172a] border border-[#1e293b] flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-1">
                         <div>
                           <div className="text-[11px] uppercase tracking-wider font-bold text-slate-400">Amount to Transfer</div>
@@ -14201,11 +14113,10 @@ function SettingsView({ settings, logo, subscription, onUpdateSubscription, onSa
             type="button"
             onClick={handleSave}
             disabled={saveStatus === 'saving'}
-            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-white text-xs font-bold transition-all shadow-[3px_3px_10px_rgba(37,99,235,0.35),-2px_-2px_6px_#ffffff] active:scale-[0.98] cursor-pointer select-none ${
-              isDirty
+            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-white text-xs font-bold transition-all shadow-[3px_3px_10px_rgba(37,99,235,0.35),-2px_-2px_6px_#ffffff] active:scale-[0.98] cursor-pointer select-none ${isDirty
                 ? 'bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 ring-2 ring-sky-400/40'
                 : 'bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700'
-            } disabled:opacity-50`}
+              } disabled:opacity-50`}
           >
             <Save size={14} />
             <span>{saveStatus === 'saving' ? 'Saving...' : isDirty ? 'Save Changes *' : 'Save Settings'}</span>
@@ -14244,11 +14155,10 @@ function SettingsView({ settings, logo, subscription, onUpdateSubscription, onSa
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer select-none active:scale-[0.98] ${
-                active
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer select-none active:scale-[0.98] ${active
                   ? 'bg-white text-slate-900 shadow-xs font-black'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               <span className={active ? 'text-sky-600' : 'text-slate-400'}>{tab.icon}</span>
               <span>{tab.label}</span>
@@ -14353,11 +14263,10 @@ function SettingsView({ settings, logo, subscription, onUpdateSubscription, onSa
                     value={data.businessName || ''}
                     onChange={(e) => handleChange('businessName', e.target.value)}
                     placeholder="e.g. Quantrex Agency"
-                    className={`w-full mt-1 px-3.5 py-2.5 border rounded-xl text-sm outline-none transition-colors ${
-                      validationErrors.businessName
+                    className={`w-full mt-1 px-3.5 py-2.5 border rounded-xl text-sm outline-none transition-colors ${validationErrors.businessName
                         ? 'border-rose-400 bg-rose-50/20 focus:ring-2 focus:ring-rose-400'
                         : 'border-slate-300 bg-white focus:ring-2 focus:ring-sky-500'
-                    }`}
+                      }`}
                   />
                   {validationErrors.businessName && (
                     <p className="mt-1 text-[11px] font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in">
@@ -14499,11 +14408,10 @@ function SettingsView({ settings, logo, subscription, onUpdateSubscription, onSa
                 value={data.contactEmail || ''}
                 onChange={(e) => handleChange('contactEmail', e.target.value)}
                 placeholder="contact@youragency.com"
-                className={`w-full mt-1 px-3.5 py-2.5 border rounded-xl text-sm outline-none transition-colors ${
-                  validationErrors.contactEmail
+                className={`w-full mt-1 px-3.5 py-2.5 border rounded-xl text-sm outline-none transition-colors ${validationErrors.contactEmail
                     ? 'border-rose-400 bg-rose-50/20 focus:ring-2 focus:ring-rose-400'
                     : 'border-slate-300 bg-white focus:ring-2 focus:ring-sky-500'
-                }`}
+                  }`}
               />
               {validationErrors.contactEmail && (
                 <p className="mt-1 text-[11px] font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in">
@@ -14518,11 +14426,10 @@ function SettingsView({ settings, logo, subscription, onUpdateSubscription, onSa
                 value={data.phone || ''}
                 onChange={(e) => handleChange('phone', e.target.value)}
                 placeholder="+880 1XXXXXXXXX"
-                className={`w-full mt-1 px-3.5 py-2.5 border rounded-xl text-sm outline-none transition-colors ${
-                  validationErrors.phone
+                className={`w-full mt-1 px-3.5 py-2.5 border rounded-xl text-sm outline-none transition-colors ${validationErrors.phone
                     ? 'border-rose-400 bg-rose-50/20 focus:ring-2 focus:ring-rose-400'
                     : 'border-slate-300 bg-white focus:ring-2 focus:ring-sky-500'
-                }`}
+                  }`}
               />
               {validationErrors.phone && (
                 <p className="mt-1 text-[11px] font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in">
@@ -14537,11 +14444,10 @@ function SettingsView({ settings, logo, subscription, onUpdateSubscription, onSa
                 value={data.website || ''}
                 onChange={(e) => handleChange('website', e.target.value)}
                 placeholder="https://youragency.com"
-                className={`w-full mt-1 px-3.5 py-2.5 border rounded-xl text-sm outline-none transition-colors ${
-                  validationErrors.website
+                className={`w-full mt-1 px-3.5 py-2.5 border rounded-xl text-sm outline-none transition-colors ${validationErrors.website
                     ? 'border-rose-400 bg-rose-50/20 focus:ring-2 focus:ring-rose-400'
                     : 'border-slate-300 bg-white focus:ring-2 focus:ring-sky-500'
-                }`}
+                  }`}
               />
               {validationErrors.website && (
                 <p className="mt-1 text-[11px] font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in">
@@ -14693,11 +14599,10 @@ function SettingsView({ settings, logo, subscription, onUpdateSubscription, onSa
                     value={data.defaultUSDRate || '131.25'}
                     onChange={(e) => handleChange('defaultUSDRate', e.target.value)}
                     placeholder="131.25"
-                    className={`w-full pl-8 pr-3.5 py-2 border rounded-xl text-sm font-bold text-slate-900 outline-none transition-colors ${
-                      validationErrors.defaultUSDRate
+                    className={`w-full pl-8 pr-3.5 py-2 border rounded-xl text-sm font-bold text-slate-900 outline-none transition-colors ${validationErrors.defaultUSDRate
                         ? 'border-rose-400 bg-rose-50/30 focus:ring-2 focus:ring-rose-400'
                         : 'border-slate-300 bg-white focus:ring-2 focus:ring-sky-500'
-                    }`}
+                      }`}
                   />
                 </div>
                 {validationErrors.defaultUSDRate ? (
@@ -14720,11 +14625,10 @@ function SettingsView({ settings, logo, subscription, onUpdateSubscription, onSa
                     value={data.defaultClientUSDRate || '140.00'}
                     onChange={(e) => handleChange('defaultClientUSDRate', e.target.value)}
                     placeholder="140.00"
-                    className={`w-full pl-8 pr-3.5 py-2 border rounded-xl text-sm font-bold text-slate-900 outline-none transition-colors ${
-                      validationErrors.defaultClientUSDRate
+                    className={`w-full pl-8 pr-3.5 py-2 border rounded-xl text-sm font-bold text-slate-900 outline-none transition-colors ${validationErrors.defaultClientUSDRate
                         ? 'border-rose-400 bg-rose-50/30 focus:ring-2 focus:ring-rose-400'
                         : 'border-slate-300 bg-white focus:ring-2 focus:ring-sky-500'
-                    }`}
+                      }`}
                   />
                 </div>
                 {validationErrors.defaultClientUSDRate ? (
@@ -15015,8 +14919,8 @@ function SettingsView({ settings, logo, subscription, onUpdateSubscription, onSa
           {restoreFeedback && (
             <div
               className={`p-4 rounded-xl border text-sm font-semibold flex items-center gap-2 ${restoreFeedback.success
-                  ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                  : 'bg-red-50 border-red-200 text-red-700'
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                : 'bg-red-50 border-red-200 text-red-700'
                 }`}
             >
               {restoreFeedback.success ? <CheckCircle2 size={17} /> : <AlertCircle size={17} />}
@@ -15269,35 +15173,32 @@ function NavItem({ icon, label, isActive, onClick, theme = 'light' }) {
     <button
       type="button"
       onClick={onClick}
-      className={`w-full flex items-center justify-between p-2 rounded-2xl cursor-pointer select-none group outline-none focus:outline-none transition-colors duration-100 border-0 ${
-        isDark
+      className={`w-full flex items-center justify-between p-2 rounded-2xl cursor-pointer select-none group outline-none focus:outline-none transition-colors duration-100 border-0 ${isDark
           ? (isActive
-              ? 'adl-nav-active bg-[#182235] text-sky-400 font-black shadow-[inset_0_0_0_1px_rgba(56,189,248,0.35),inset_0_2px_4px_rgba(0,0,0,0.6)]'
-              : 'adl-nav-inactive text-slate-400 hover:text-slate-100 hover:bg-slate-800/40 shadow-none bg-transparent')
+            ? 'adl-nav-active bg-[#182235] text-sky-400 font-black shadow-[inset_0_0_0_1px_rgba(56,189,248,0.35),inset_0_2px_4px_rgba(0,0,0,0.6)]'
+            : 'adl-nav-inactive text-slate-400 hover:text-slate-100 hover:bg-slate-800/40 shadow-none bg-transparent')
           : (isActive
-              ? 'adl-nav-active bg-[#e0eaf6] text-blue-700 font-black shadow-[inset_2px_2px_4px_rgba(166,180,200,0.35),inset_-2px_-2px_4px_#ffffff] border border-blue-200/60'
-              : 'adl-nav-inactive text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 shadow-none bg-transparent')
-      }`}
+            ? 'adl-nav-active bg-[#e0eaf6] text-blue-700 font-black shadow-[inset_2px_2px_4px_rgba(166,180,200,0.35),inset_-2px_-2px_4px_#ffffff] border border-blue-200/60'
+            : 'adl-nav-inactive text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 shadow-none bg-transparent')
+        }`}
     >
       <div className="flex items-center gap-3 min-w-0">
         <div
-          className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors duration-100 border-0 ${
-            isDark
+          className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors duration-100 border-0 ${isDark
               ? (isActive
-                  ? 'bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-[0_0_12px_rgba(56,189,248,0.4)]'
-                  : 'bg-[#0c1017] text-slate-400 group-hover:text-sky-400 shadow-none')
+                ? 'bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-[0_0_12px_rgba(56,189,248,0.4)]'
+                : 'bg-[#0c1017] text-slate-400 group-hover:text-sky-400 shadow-none')
               : (isActive
-                  ? 'bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-[2px_3px_8px_rgba(37,99,235,0.4)]'
-                  : 'bg-[#f1f5f9] text-slate-500 group-hover:text-blue-600 shadow-none')
-          }`}
+                ? 'bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-[2px_3px_8px_rgba(37,99,235,0.4)]'
+                : 'bg-[#f1f5f9] text-slate-500 group-hover:text-blue-600 shadow-none')
+            }`}
         >
           {React.cloneElement(icon, { size: 16, className: isActive ? 'stroke-[2.5]' : 'stroke-[2]' })}
         </div>
-        <span className={`truncate text-xs ${
-          isActive
+        <span className={`truncate text-xs ${isActive
             ? (isDark ? 'font-black text-sky-400' : 'font-black text-blue-800')
             : (isDark ? 'font-bold text-slate-300 group-hover:text-white' : 'font-bold text-slate-700 group-hover:text-slate-950')
-        }`}>
+          }`}>
           {label}
         </span>
       </div>
@@ -15615,11 +15516,10 @@ function ClientActionsMenu({
     ? createPortal(
       <div
         ref={menuRef}
-        className={`fixed border rounded-xl shadow-2xl z-[99999] p-1.5 ${
-          isDark
+        className={`fixed border rounded-xl shadow-2xl z-[99999] p-1.5 ${isDark
             ? 'bg-[#111722] border-white/10 text-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.85)]'
             : 'bg-white border-slate-200/90 text-slate-700'
-        }`}
+          }`}
         style={{
           top: menuPosition.top,
           left: menuPosition.left,
@@ -15631,9 +15531,8 @@ function ClientActionsMenu({
         <button
           type="button"
           onClick={() => closeAndRun(onViewDetails)}
-          className={`w-full text-left px-3.5 py-2.5 text-xs font-bold rounded-lg flex items-center gap-2.5 transition-colors border-0 outline-none ${
-            isDark ? 'text-slate-200 hover:bg-white/5 hover:text-sky-400' : 'text-slate-700 hover:bg-sky-50 hover:text-sky-700'
-          }`}
+          className={`w-full text-left px-3.5 py-2.5 text-xs font-bold rounded-lg flex items-center gap-2.5 transition-colors border-0 outline-none ${isDark ? 'text-slate-200 hover:bg-white/5 hover:text-sky-400' : 'text-slate-700 hover:bg-sky-50 hover:text-sky-700'
+            }`}
         >
           <Eye size={15} className={isDark ? 'text-sky-400 shrink-0' : 'text-sky-600 shrink-0'} />
           <span>View Details</span>
@@ -15642,9 +15541,8 @@ function ClientActionsMenu({
         <button
           type="button"
           onClick={() => closeAndRun(onHistory)}
-          className={`w-full text-left px-3.5 py-2.5 text-xs font-bold rounded-lg flex items-center gap-2.5 transition-colors border-0 outline-none ${
-            isDark ? 'text-slate-200 hover:bg-white/5 hover:text-indigo-400' : 'text-slate-700 hover:bg-slate-50 hover:text-indigo-600'
-          }`}
+          className={`w-full text-left px-3.5 py-2.5 text-xs font-bold rounded-lg flex items-center gap-2.5 transition-colors border-0 outline-none ${isDark ? 'text-slate-200 hover:bg-white/5 hover:text-indigo-400' : 'text-slate-700 hover:bg-slate-50 hover:text-indigo-600'
+            }`}
         >
           <Receipt size={15} className={isDark ? 'text-indigo-400 shrink-0' : 'text-indigo-600 shrink-0'} />
           <span>Transaction History</span>
@@ -15653,9 +15551,8 @@ function ClientActionsMenu({
         <button
           type="button"
           onClick={() => closeAndRun(onEdit)}
-          className={`w-full text-left px-3.5 py-2.5 text-xs font-bold rounded-lg flex items-center gap-2.5 transition-colors border-0 outline-none ${
-            isDark ? 'text-slate-200 hover:bg-white/5 hover:text-white' : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
-          }`}
+          className={`w-full text-left px-3.5 py-2.5 text-xs font-bold rounded-lg flex items-center gap-2.5 transition-colors border-0 outline-none ${isDark ? 'text-slate-200 hover:bg-white/5 hover:text-white' : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+            }`}
         >
           <Edit size={15} className={isDark ? 'text-slate-400 shrink-0' : 'text-slate-500 shrink-0'} />
           <span>Edit Client Profile</span>
@@ -15664,9 +15561,8 @@ function ClientActionsMenu({
         <button
           type="button"
           onClick={() => closeAndRun(onReceivePayment)}
-          className={`w-full text-left px-3.5 py-2.5 text-xs font-bold rounded-lg flex items-center gap-2.5 transition-colors border-0 outline-none ${
-            isDark ? 'text-emerald-400 hover:bg-emerald-500/10' : 'text-emerald-700 hover:bg-emerald-50'
-          }`}
+          className={`w-full text-left px-3.5 py-2.5 text-xs font-bold rounded-lg flex items-center gap-2.5 transition-colors border-0 outline-none ${isDark ? 'text-emerald-400 hover:bg-emerald-500/10' : 'text-emerald-700 hover:bg-emerald-50'
+            }`}
         >
           <Coins size={15} className={isDark ? 'text-emerald-400 shrink-0' : 'text-emerald-600 shrink-0'} />
           <span>Receive Payment</span>
@@ -15677,9 +15573,8 @@ function ClientActionsMenu({
         <button
           type="button"
           onClick={() => setShowStatusMenu(prev => !prev)}
-          className={`w-full text-left px-3.5 py-2.5 text-xs font-bold rounded-lg flex items-center justify-between transition-colors border-0 outline-none ${
-            isDark ? 'text-slate-200 hover:bg-white/5' : 'text-slate-700 hover:bg-slate-50'
-          }`}
+          className={`w-full text-left px-3.5 py-2.5 text-xs font-bold rounded-lg flex items-center justify-between transition-colors border-0 outline-none ${isDark ? 'text-slate-200 hover:bg-white/5' : 'text-slate-700 hover:bg-slate-50'
+            }`}
           aria-expanded={showStatusMenu}
         >
           <span className="flex items-center gap-2.5">
@@ -15693,15 +15588,13 @@ function ClientActionsMenu({
         </button>
 
         {showStatusMenu && (
-          <div className={`mx-1 mb-1 mt-1 rounded-lg p-1 space-y-0.5 border ${
-            isDark ? 'bg-black/30 border-white/10' : 'bg-slate-50 border-slate-100/90'
-          }`}>
+          <div className={`mx-1 mb-1 mt-1 rounded-lg p-1 space-y-0.5 border ${isDark ? 'bg-black/30 border-white/10' : 'bg-slate-50 border-slate-100/90'
+            }`}>
             <button
               type="button"
               onClick={() => closeAndRun(() => onToggleStatus?.('active'))}
-              className={`w-full text-left px-3 py-2 text-xs font-bold rounded-md flex items-center gap-2 border-0 outline-none ${
-                isDark ? 'text-emerald-400 hover:bg-emerald-500/10' : 'text-emerald-700 hover:bg-emerald-100/70'
-              }`}
+              className={`w-full text-left px-3 py-2 text-xs font-bold rounded-md flex items-center gap-2 border-0 outline-none ${isDark ? 'text-emerald-400 hover:bg-emerald-500/10' : 'text-emerald-700 hover:bg-emerald-100/70'
+                }`}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
               Mark Active
@@ -15710,9 +15603,8 @@ function ClientActionsMenu({
             <button
               type="button"
               onClick={() => closeAndRun(() => onToggleStatus?.('inactive'))}
-              className={`w-full text-left px-3 py-2 text-xs font-bold rounded-md flex items-center gap-2 border-0 outline-none ${
-                isDark ? 'text-orange-400 hover:bg-orange-500/10' : 'text-orange-700 hover:bg-orange-100/70'
-              }`}
+              className={`w-full text-left px-3 py-2 text-xs font-bold rounded-md flex items-center gap-2 border-0 outline-none ${isDark ? 'text-orange-400 hover:bg-orange-500/10' : 'text-orange-700 hover:bg-orange-100/70'
+                }`}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
               Mark Inactive
@@ -15721,9 +15613,8 @@ function ClientActionsMenu({
             <button
               type="button"
               onClick={() => closeAndRun(() => onToggleStatus?.('completed'))}
-              className={`w-full text-left px-3 py-2 text-xs font-bold rounded-md flex items-center gap-2 border-0 outline-none ${
-                isDark ? 'text-blue-400 hover:bg-blue-500/10' : 'text-blue-700 hover:bg-blue-100/70'
-              }`}
+              className={`w-full text-left px-3 py-2 text-xs font-bold rounded-md flex items-center gap-2 border-0 outline-none ${isDark ? 'text-blue-400 hover:bg-blue-500/10' : 'text-blue-700 hover:bg-blue-100/70'
+                }`}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
               Mark Completed
@@ -15736,9 +15627,8 @@ function ClientActionsMenu({
         <button
           type="button"
           onClick={() => closeAndRun(onDelete)}
-          className={`w-full text-left px-3.5 py-2.5 text-xs font-bold rounded-lg flex items-center justify-between transition-colors border-0 outline-none ${
-            isDark ? 'text-rose-400 hover:bg-rose-500/10' : 'text-rose-600 hover:bg-rose-50'
-          }`}
+          className={`w-full text-left px-3.5 py-2.5 text-xs font-bold rounded-lg flex items-center justify-between transition-colors border-0 outline-none ${isDark ? 'text-rose-400 hover:bg-rose-500/10' : 'text-rose-600 hover:bg-rose-50'
+            }`}
         >
           <span className="flex items-center gap-2.5">
             <Trash2 size={15} className={isDark ? 'text-rose-400 shrink-0' : 'text-rose-500 shrink-0'} />
@@ -15796,46 +15686,40 @@ function ClientTransactionHistoryModal({ client, transactions, metrics }) {
     <div className="space-y-5">
       {/* 4 COMPACT KPI TAGS */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-        <div className={`rounded-xl p-3 border ${
-          isDark
+        <div className={`rounded-xl p-3 border ${isDark
             ? 'bg-[#0a1510] border-emerald-500/30'
             : 'bg-gradient-to-br from-emerald-50/80 via-white to-teal-50/40 border-emerald-200/70 shadow-2xs'
-        }`}>
+          }`}>
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Payments Received</span>
           <span className={`text-sm font-black mt-0.5 block ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>{formatBDT(totalReceived)}</span>
         </div>
-        <div className={`rounded-xl p-3 border ${
-          isDark
+        <div className={`rounded-xl p-3 border ${isDark
             ? 'bg-[#130f1c] border-purple-500/30'
             : 'bg-gradient-to-br from-purple-50/80 via-white to-indigo-50/40 border-purple-200/70 shadow-2xs'
-        }`}>
+          }`}>
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Ad Spend</span>
           <span className={`text-sm font-black mt-0.5 block ${isDark ? 'text-purple-400' : 'text-purple-700'}`}>{formatUSD(totalAdSpend)}</span>
         </div>
-        <div className={`rounded-xl p-3 border ${
-          isDark
+        <div className={`rounded-xl p-3 border ${isDark
             ? 'bg-[#190d14] border-rose-500/30'
             : 'bg-gradient-to-br from-rose-50/80 via-white to-orange-50/40 border-rose-200/70 shadow-2xs'
-        }`}>
+          }`}>
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Ad VAT (15%)</span>
           <span className={`text-sm font-black mt-0.5 block ${isDark ? 'text-rose-400' : 'text-rose-700'}`}>{formatUSD(totalTax)}</span>
         </div>
-        <div className={`rounded-xl p-3 border ${
-          isDark
+        <div className={`rounded-xl p-3 border ${isDark
             ? 'bg-[#111722] border-white/10'
             : 'bg-gradient-to-br from-slate-50 via-white to-slate-100/50 border-slate-200/70 shadow-2xs'
-        }`}>
+          }`}>
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Ledger Entries</span>
           <span className={`text-sm font-black mt-0.5 block ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{clientTx.length} Entries</span>
         </div>
       </div>
 
-      <div className={`border rounded-xl overflow-hidden ${
-        isDark ? 'border-white/10 bg-[#111722]' : 'border-slate-200/90 bg-white shadow-2xs'
-      }`}>
-        <div className={`px-4 py-3 border-b flex items-center justify-between ${
-          isDark ? 'border-white/10 bg-[#0d121b]' : 'border-slate-200/80 bg-slate-50/80'
+      <div className={`border rounded-xl overflow-hidden ${isDark ? 'border-white/10 bg-[#111722]' : 'border-slate-200/90 bg-white shadow-2xs'
         }`}>
+        <div className={`px-4 py-3 border-b flex items-center justify-between ${isDark ? 'border-white/10 bg-[#0d121b]' : 'border-slate-200/80 bg-slate-50/80'
+          }`}>
           <div>
             <h3 className={`font-bold text-xs ${isDark ? 'text-white' : 'text-slate-800'}`}>Client Transaction History</h3>
             <p className="text-[11px] text-slate-400">All ledger records linked to {client.name}</p>
@@ -15844,9 +15728,8 @@ function ClientTransactionHistoryModal({ client, transactions, metrics }) {
 
         <div className="overflow-x-auto max-h-[55vh]">
           <table className="w-full text-xs text-left whitespace-nowrap">
-            <thead className={`font-bold border-b sticky top-0 uppercase tracking-wider text-[10px] ${
-              isDark ? 'bg-[#0d121b] text-slate-400 border-white/10' : 'bg-white text-slate-500 border-slate-200'
-            }`}>
+            <thead className={`font-bold border-b sticky top-0 uppercase tracking-wider text-[10px] ${isDark ? 'bg-[#0d121b] text-slate-400 border-white/10' : 'bg-white text-slate-500 border-slate-200'
+              }`}>
               <tr>
                 <th className="px-4 py-2.5">Date</th>
                 <th className="px-4 py-2.5">Type</th>
@@ -16272,13 +16155,12 @@ function ClientDetailsModal({ client, metrics, transactions, cards = [], clients
         <div className="w-full min-w-0">
           <div className="flex items-center gap-2.5 mb-1 flex-wrap">
             <h2 className="text-xl font-black text-slate-900 tracking-tight">{client.name}</h2>
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold flex items-center gap-1.5 ${
-              displayStatus.includes('Active') || displayStatus.includes('Working')
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold flex items-center gap-1.5 ${displayStatus.includes('Active') || displayStatus.includes('Working')
                 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200/80'
                 : displayStatus.includes('Completed')
                   ? 'bg-sky-100 text-sky-800 border border-sky-200/80'
                   : 'bg-slate-200/80 text-slate-700 border border-slate-300'
-            }`}>
+              }`}>
               {(displayStatus.includes('Active') || displayStatus.includes('Working')) && (
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               )}
@@ -16759,7 +16641,7 @@ function SupportDeskModal({
       }
       setCopiedTicketId(true);
       setTimeout(() => setCopiedTicketId(false), 2000);
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const handleSubmitTicket = (e) => {
